@@ -101,7 +101,7 @@ function leerMovimientos_() {
   return datos.map(function (fila) {
     return {
       id: fila[0],
-      fecha: fila[1] instanceof Date ? fila[1].toISOString() : fila[1],
+      fecha: fila[1] instanceof Date ? fechaLocalISO_(fila[1]) : fila[1],
       tipo: fila[2],
       producto: fila[3],
       cantidadM3: fila[4]
@@ -118,6 +118,24 @@ function agregarMovimiento_(tipo, producto) {
   var ahora = new Date();
   hoja.appendRow([id, ahora, tipo, producto || '', factor]);
   return { id: id, fecha: ahora.toISOString(), tipo: tipo, producto: producto || '', cantidadM3: factor };
+}
+
+function deshacerUltimoMovimiento_(tipo, producto) {
+  var hoja = getSpreadsheet_().getSheetByName('MOVIMIENTOS');
+  var lastRow = hoja.getLastRow();
+  if (lastRow < 2) return { deshecho: false };
+  var hoyISO = hoyLocalISO_();
+  var claveProducto = producto || '';
+  var datos = hoja.getRange(2, 1, lastRow - 1, 5).getValues();
+  for (var i = datos.length - 1; i >= 0; i--) {
+    var fila = datos[i];
+    var fechaISO = fila[1] instanceof Date ? fechaLocalISO_(fila[1]) : fila[1];
+    if (fila[2] === tipo && fila[3] === claveProducto && esMismoDia(fechaISO, hoyISO)) {
+      hoja.deleteRow(i + 2);
+      return { deshecho: true, tipo: tipo, producto: claveProducto };
+    }
+  }
+  return { deshecho: false };
 }
 
 function recalcularStock_(producto) {
@@ -157,9 +175,13 @@ function leerStock_() {
   return stock;
 }
 
+function fechaLocalISO_(fecha) {
+  var dia = Utilities.formatDate(fecha, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  return dia + 'T00:00:00.000Z';
+}
+
 function hoyLocalISO_() {
-  var fecha = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
-  return fecha + 'T00:00:00.000Z';
+  return fechaLocalISO_(new Date());
 }
 
 function leerHorometroHoy_() {
@@ -231,7 +253,7 @@ function leerInsumosHoy_() {
   var datos = hoja.getRange(2, 1, lastRow - 1, 4).getValues();
   var resultado = {};
   datos.forEach(function (fila) {
-    var fechaISO = fila[1] instanceof Date ? fila[1].toISOString() : fila[1];
+    var fechaISO = fila[1] instanceof Date ? fechaLocalISO_(fila[1]) : fila[1];
     if (!esMismoDia(fechaISO, hoyISO)) return;
     resultado[fila[2]] = (resultado[fila[2]] || 0) + fila[3];
   });

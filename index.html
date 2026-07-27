@@ -17,6 +17,13 @@
     --borde: #e2e8f0;
     --exito: #2f855a;
     --peligro: #c53030;
+    --entrada: #2f855a;
+    --entrada-tinte: #e9f7ef;
+    --salida: #c05621;
+    --salida-tinte: #fdf1e7;
+    --produccion: #2b6cb0;
+    --produccion-tinte: #eaf2fb;
+    --deshacer: #a0aec0;
   }
   * { box-sizing: border-box; }
   body {
@@ -24,106 +31,282 @@
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
     background: var(--bg);
     color: var(--texto);
-    padding-bottom: 72px;
+    padding-bottom: 76px;
   }
-  header { background: var(--primario); color: white; padding: 16px; text-align: center; }
-  header h1 { margin: 0; font-size: 20px; }
-  header p { margin: 4px 0 0; font-size: 13px; opacity: 0.85; }
+  header {
+    background: var(--primario);
+    color: white;
+    padding: 18px 16px 14px;
+    text-align: center;
+  }
+  header img.logo { height: 34px; display: block; margin: 0 auto; }
+  header p { margin: 8px 0 0; font-size: 13px; opacity: 0.85; }
   main { padding: 16px; max-width: 480px; margin: 0 auto; }
   section { display: none; }
   section.activa { display: block; }
-  .grid-botones { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .boton-contador {
-    background: var(--card);
-    border: 2px solid var(--borde);
-    border-radius: 12px;
-    padding: 16px 8px;
-    text-align: center;
-    cursor: pointer;
-    font-size: 15px;
+
+  .seccion-titulo {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 4px 4px 10px;
   }
-  .boton-contador:active { background: var(--borde); }
-  .boton-contador .conteo { display: block; font-size: 26px; font-weight: 700; margin-top: 6px; color: var(--primario-oscuro); }
-  .boton-ancho { grid-column: 1 / -1; background: var(--primario); color: white; border: none; }
-  .boton-ancho .conteo { color: white; }
-  .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--borde); }
+  .seccion-titulo.entrada { color: var(--entrada); }
+  .seccion-titulo.salida { color: var(--salida); }
+  .seccion-titulo.produccion { color: var(--produccion); }
+  .seccion-bloque { margin-bottom: 22px; }
+
+  .stepper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: var(--card);
+    border: 1px solid var(--borde);
+    border-left: 6px solid var(--tono, var(--primario));
+    border-radius: 14px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+  }
+  .stepper.entrada { --tono: var(--entrada); background: var(--entrada-tinte); }
+  .stepper.salida { --tono: var(--salida); background: var(--salida-tinte); }
+  .stepper.produccion { --tono: var(--produccion); background: var(--produccion-tinte); }
+
+  .stepper-btn {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    border-radius: 50%;
+    border: none;
+    font-size: 26px;
+    font-weight: 700;
+    color: white;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .stepper-btn.mas { background: var(--tono, var(--primario)); }
+  .stepper-btn.menos { background: var(--deshacer); }
+  .stepper-btn:disabled { opacity: 0.35; pointer-events: none; }
+  .stepper-btn:active:not(:disabled) { filter: brightness(0.9); }
+
+  .stepper-info { flex: 1; text-align: center; min-width: 0; }
+  .stepper-label { display: block; font-size: 14px; font-weight: 600; color: var(--texto); }
+  .stepper-count { display: block; font-size: 30px; font-weight: 800; color: var(--primario-oscuro); }
+
+  .card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid var(--borde);
+  }
   .card h3 { margin: 0 0 8px; font-size: 15px; }
-  .fila-stock { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--borde); }
-  .fila-stock:last-child { border-bottom: none; }
+
+  .stock-item {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--borde);
+  }
+  .stock-item:last-child { border-bottom: none; }
+  .stock-item .stock-nombre { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .stock-item .stock-actual { font-size: 28px; font-weight: 800; color: var(--primario-oscuro); }
+  .stock-item .stock-actual small { font-size: 15px; font-weight: 600; color: #718096; }
+  .stock-desglose {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #718096;
+  }
+  .stock-desglose b { color: var(--texto); font-weight: 700; }
+
   label { display: block; font-size: 13px; margin-bottom: 4px; color: #4a5568; }
   input, select {
-    width: 100%; padding: 10px; border: 1px solid var(--borde);
-    border-radius: 8px; font-size: 16px; margin-bottom: 12px;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    font-size: 16px;
+    margin-bottom: 12px;
   }
   input:disabled { background: #edf2f7; color: #a0aec0; }
   button.accion {
-    width: 100%; padding: 14px; border: none; border-radius: 10px;
-    background: var(--primario); color: white; font-size: 16px; font-weight: 600;
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    background: var(--primario);
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
   }
-  .mensaje { text-align: center; padding: 8px; border-radius: 8px; margin-bottom: 12px; font-size: 14px; }
+  button.accion:disabled { opacity: 0.5; }
+  .mensaje {
+    text-align: center;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    font-weight: 600;
+  }
   .mensaje.ok { background: #c6f6d5; color: var(--exito); }
   .mensaje.error { background: #fed7d7; color: var(--peligro); }
-  nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--borde); display: flex; }
-  nav button { flex: 1; padding: 10px 4px; border: none; background: none; font-size: 11px; color: #718096; }
+  nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--card);
+    border-top: 1px solid var(--borde);
+    display: flex;
+  }
+  nav button {
+    flex: 1;
+    padding: 10px 4px;
+    border: none;
+    background: none;
+    font-size: 11px;
+    color: #718096;
+  }
   nav button.activo { color: var(--primario-oscuro); font-weight: 700; }
   nav button .icono { display: block; font-size: 20px; }
 </style>
 </head>
 <body>
 <header>
-  <h1>Planta de Trituración</h1>
-  <p id="fecha-hoy"></p>
+  <img class="logo" src="logo-ingeco.png" alt="INGECO">
+  <p>Planta de Trituración · <span id="fecha-hoy"></span></p>
 </header>
 <main>
   <div id="mensaje" class="mensaje" style="display:none"></div>
 
   <section id="tab-camiones" class="activa">
-    <div class="grid-botones">
-      <button class="boton-contador boton-ancho" data-accion="camion-bruto">
-        Entrada Material Bruto
-        <span class="conteo" id="c-entrada_bruto">0</span>
-      </button>
-      <button class="boton-contador" data-accion="camion-salida" data-producto="piedra_6_19">Piedra 6-19<span class="conteo" id="c-salida-piedra_6_19">0</span></button>
-      <button class="boton-contador" data-accion="camion-salida" data-producto="piedra_19_38">Piedra 19-38<span class="conteo" id="c-salida-piedra_19_38">0</span></button>
-      <button class="boton-contador" data-accion="camion-salida" data-producto="piedra_0_6">Piedra 0-6<span class="conteo" id="c-salida-piedra_0_6">0</span></button>
-      <button class="boton-contador" data-accion="camion-salida" data-producto="piedra_6_12">Piedra 6-12<span class="conteo" id="c-salida-piedra_6_12">0</span></button>
-      <button class="boton-contador" data-accion="camion-salida" data-producto="piedra_rechazo">Piedra Rechazo<span class="conteo" id="c-salida-piedra_rechazo">0</span></button>
-      <button class="boton-contador" data-accion="camion-salida" data-producto="piedra_bola">Piedra Bola<span class="conteo" id="c-salida-piedra_bola">0</span></button>
+    <div class="seccion-bloque">
+      <div class="seccion-titulo entrada">🟢 Entra</div>
+      <div class="stepper entrada" data-tipo="entrada_bruto">
+        <button class="stepper-btn menos" data-accion="menos">−</button>
+        <div class="stepper-info">
+          <span class="stepper-label">Material Bruto</span>
+          <span class="stepper-count" id="c-entrada_bruto">0</span>
+        </div>
+        <button class="stepper-btn mas" data-accion="mas">+</button>
+      </div>
+    </div>
+
+    <div class="seccion-bloque">
+      <div class="seccion-titulo salida">🔴 Sale</div>
+      <div class="stepper salida" data-tipo="salida" data-producto="piedra_6_19">
+        <button class="stepper-btn menos" data-accion="menos">−</button>
+        <div class="stepper-info">
+          <span class="stepper-label">Piedra 6-19</span>
+          <span class="stepper-count" id="c-salida-piedra_6_19">0</span>
+        </div>
+        <button class="stepper-btn mas" data-accion="mas">+</button>
+      </div>
+      <div class="stepper salida" data-tipo="salida" data-producto="piedra_19_38">
+        <button class="stepper-btn menos" data-accion="menos">−</button>
+        <div class="stepper-info">
+          <span class="stepper-label">Piedra 19-38</span>
+          <span class="stepper-count" id="c-salida-piedra_19_38">0</span>
+        </div>
+        <button class="stepper-btn mas" data-accion="mas">+</button>
+      </div>
+      <div class="stepper salida" data-tipo="salida" data-producto="piedra_0_6">
+        <button class="stepper-btn menos" data-accion="menos">−</button>
+        <div class="stepper-info">
+          <span class="stepper-label">Piedra 0-6</span>
+          <span class="stepper-count" id="c-salida-piedra_0_6">0</span>
+        </div>
+        <button class="stepper-btn mas" data-accion="mas">+</button>
+      </div>
+      <div class="stepper salida" data-tipo="salida" data-producto="piedra_6_12">
+        <button class="stepper-btn menos" data-accion="menos">−</button>
+        <div class="stepper-info">
+          <span class="stepper-label">Piedra 6-12</span>
+          <span class="stepper-count" id="c-salida-piedra_6_12">0</span>
+        </div>
+        <button class="stepper-btn mas" data-accion="mas">+</button>
+      </div>
+      <div class="stepper salida" data-tipo="salida" data-producto="piedra_rechazo">
+        <button class="stepper-btn menos" data-accion="menos">−</button>
+        <div class="stepper-info">
+          <span class="stepper-label">Piedra Rechazo</span>
+          <span class="stepper-count" id="c-salida-piedra_rechazo">0</span>
+        </div>
+        <button class="stepper-btn mas" data-accion="mas">+</button>
+      </div>
+      <div class="stepper salida" data-tipo="salida" data-producto="piedra_bola">
+        <button class="stepper-btn menos" data-accion="menos">−</button>
+        <div class="stepper-info">
+          <span class="stepper-label">Piedra Bola</span>
+          <span class="stepper-count" id="c-salida-piedra_bola">0</span>
+        </div>
+        <button class="stepper-btn mas" data-accion="mas">+</button>
+      </div>
     </div>
   </section>
 
   <section id="tab-produccion">
-    <div class="grid-botones">
-      <button class="boton-contador" data-accion="produccion" data-producto="piedra_6_19">Piedra 6-19<span class="conteo" id="c-produccion-piedra_6_19">0</span></button>
-      <button class="boton-contador" data-accion="produccion" data-producto="piedra_0_6">Piedra 0-6<span class="conteo" id="c-produccion-piedra_0_6">0</span></button>
-      <button class="boton-contador" data-accion="produccion" data-producto="piedra_rechazo">Piedra Rechazo<span class="conteo" id="c-produccion-piedra_rechazo">0</span></button>
-      <button class="boton-contador" data-accion="produccion" data-producto="piedra_bola">Piedra Bola<span class="conteo" id="c-produccion-piedra_bola">0</span></button>
+    <div class="seccion-titulo produccion">⚙️ Producción (a acopio)</div>
+    <div class="stepper produccion" data-tipo="produccion" data-producto="piedra_6_19">
+      <button class="stepper-btn menos" data-accion="menos">−</button>
+      <div class="stepper-info">
+        <span class="stepper-label">Piedra 6-19</span>
+        <span class="stepper-count" id="c-produccion-piedra_6_19">0</span>
+      </div>
+      <button class="stepper-btn mas" data-accion="mas">+</button>
+    </div>
+    <div class="stepper produccion" data-tipo="produccion" data-producto="piedra_0_6">
+      <button class="stepper-btn menos" data-accion="menos">−</button>
+      <div class="stepper-info">
+        <span class="stepper-label">Piedra 0-6</span>
+        <span class="stepper-count" id="c-produccion-piedra_0_6">0</span>
+      </div>
+      <button class="stepper-btn mas" data-accion="mas">+</button>
+    </div>
+    <div class="stepper produccion" data-tipo="produccion" data-producto="piedra_rechazo">
+      <button class="stepper-btn menos" data-accion="menos">−</button>
+      <div class="stepper-info">
+        <span class="stepper-label">Piedra Rechazo</span>
+        <span class="stepper-count" id="c-produccion-piedra_rechazo">0</span>
+      </div>
+      <button class="stepper-btn mas" data-accion="mas">+</button>
+    </div>
+    <div class="stepper produccion" data-tipo="produccion" data-producto="piedra_bola">
+      <button class="stepper-btn menos" data-accion="menos">−</button>
+      <div class="stepper-info">
+        <span class="stepper-label">Piedra Bola</span>
+        <span class="stepper-count" id="c-produccion-piedra_bola">0</span>
+      </div>
+      <button class="stepper-btn mas" data-accion="mas">+</button>
     </div>
   </section>
 
   <section id="tab-stock">
     <div class="card">
-      <h3>Stock de acopio (m³)</h3>
+      <h3>📦 Stock de acopio</h3>
       <div id="lista-stock"></div>
     </div>
   </section>
 
   <section id="tab-horometro">
     <div class="card">
-      <h3>Horómetro de hoy</h3>
+      <h3>⏱️ Horómetro de hoy</h3>
       <label for="input-horometro-entrada">Horómetro entrada</label>
       <input type="number" id="input-horometro-entrada" step="0.1">
-      <button class="accion" id="btn-horometro-entrada" style="margin-bottom:12px">Registrar entrada</button>
+      <button class="accion" id="btn-horometro-entrada" style="margin-bottom:16px">Registrar entrada</button>
       <label for="input-horometro-salida">Horómetro salida</label>
       <input type="number" id="input-horometro-salida" step="0.1">
       <button class="accion" id="btn-horometro-salida">Registrar salida</button>
-      <p id="horas-trabajadas" style="margin-top:12px; font-weight:600"></p>
+      <p id="horas-trabajadas" style="margin-top:14px; font-weight:700; text-align:center"></p>
     </div>
   </section>
 
   <section id="tab-insumos">
     <div class="card">
-      <h3>Registrar uso de insumo</h3>
+      <h3>🛢️ Registrar uso de insumo</h3>
       <label for="select-insumo">Insumo</label>
       <select id="select-insumo">
         <option value="aceite_motor">Aceite Motor</option>
@@ -164,6 +347,8 @@
     refrigerante: 'Refrigerante', agua_destilada: 'Agua Destilada', grasa: 'Grasa'
   };
 
+  var estadoContadores = { entrada_bruto: 0, salida: {}, produccion: {} };
+
   function mostrarMensaje(texto, tipo) {
     var el = document.getElementById('mensaje');
     el.textContent = texto;
@@ -192,14 +377,36 @@
     });
   }
 
+  function contadorDe(tipo, producto) {
+    if (tipo === 'entrada_bruto') return estadoContadores.entrada_bruto || 0;
+    if (tipo === 'salida') return (estadoContadores.salida && estadoContadores.salida[producto]) || 0;
+    if (tipo === 'produccion') return (estadoContadores.produccion && estadoContadores.produccion[producto]) || 0;
+    return 0;
+  }
+
+  function actualizarBotonesMenos() {
+    document.querySelectorAll('.stepper').forEach(function (stepper) {
+      var tipo = stepper.dataset.tipo;
+      var producto = stepper.dataset.producto;
+      var boton = stepper.querySelector('.stepper-btn.menos');
+      boton.disabled = contadorDe(tipo, producto) <= 0;
+    });
+  }
+
   function pintarHoy(datos) {
-    document.getElementById('c-entrada_bruto').textContent = datos.camiones.entrada_bruto || 0;
+    estadoContadores.entrada_bruto = datos.camiones.entrada_bruto || 0;
+    estadoContadores.salida = datos.camiones.salida || {};
+    estadoContadores.produccion = datos.produccion || {};
+
+    document.getElementById('c-entrada_bruto').textContent = estadoContadores.entrada_bruto;
     Object.keys(LABELS_PIEDRA).forEach(function (producto) {
       var elSalida = document.getElementById('c-salida-' + producto);
-      if (elSalida) elSalida.textContent = (datos.camiones.salida && datos.camiones.salida[producto]) || 0;
+      if (elSalida) elSalida.textContent = estadoContadores.salida[producto] || 0;
       var elProd = document.getElementById('c-produccion-' + producto);
-      if (elProd) elProd.textContent = (datos.produccion && datos.produccion[producto]) || 0;
+      if (elProd) elProd.textContent = estadoContadores.produccion[producto] || 0;
     });
+    actualizarBotonesMenos();
+
     var entradaInput = document.getElementById('input-horometro-entrada');
     var salidaInput = document.getElementById('input-horometro-salida');
     if (datos.horometro) {
@@ -218,13 +425,14 @@
       salidaInput.disabled = false;
       document.getElementById('horas-trabajadas').textContent = '';
     }
+
     var listaInsumos = document.getElementById('lista-insumos-hoy');
     listaInsumos.innerHTML = '';
     Object.keys(LABELS_INSUMO).forEach(function (tipo) {
       var cantidad = (datos.insumos && datos.insumos[tipo]) || 0;
       var fila = document.createElement('div');
-      fila.className = 'fila-stock';
-      fila.innerHTML = '<span>' + LABELS_INSUMO[tipo] + '</span><span>' + cantidad + '</span>';
+      fila.className = 'stock-item';
+      fila.innerHTML = '<span>' + LABELS_INSUMO[tipo] + '</span> — <b>' + cantidad + '</b>';
       listaInsumos.appendChild(fila);
     });
   }
@@ -235,11 +443,17 @@
     Object.keys(LABELS_PIEDRA).forEach(function (producto) {
       if (!stock[producto]) return;
       var s = stock[producto];
-      var fila = document.createElement('div');
-      fila.className = 'fila-stock';
-      fila.innerHTML = '<span>' + LABELS_PIEDRA[producto] + '</span><span>Inicial ' + s.inicial +
-        ' · Producido ' + s.producido + ' · Entregado ' + s.entregado + ' · Actual ' + s.actual + ' m³</span>';
-      lista.appendChild(fila);
+      var item = document.createElement('div');
+      item.className = 'stock-item';
+      item.innerHTML =
+        '<div class="stock-nombre">' + LABELS_PIEDRA[producto] + '</div>' +
+        '<div class="stock-actual">' + s.actual + ' <small>m³ actual</small></div>' +
+        '<div class="stock-desglose">' +
+        '<span>Inicial <b>' + s.inicial + '</b></span>' +
+        '<span>Producido <b>' + s.producido + '</b></span>' +
+        '<span>Entregado <b>' + s.entregado + '</b></span>' +
+        '</div>';
+      lista.appendChild(item);
     });
   }
 
@@ -252,33 +466,46 @@
     });
   }
 
+  function conBotonDeshabilitado(boton, fn) {
+    if (boton.disabled) return;
+    boton.disabled = true;
+    fn().finally(function () { actualizarBotonesMenos(); });
+  }
+
   document.querySelectorAll('nav button').forEach(function (boton) {
     boton.addEventListener('click', function () { cambiarTab(boton.dataset.tab); });
   });
 
-  document.querySelectorAll('[data-accion="camion-bruto"]').forEach(function (boton) {
-    boton.addEventListener('click', function () {
-      llamarApi('registrarCamion', { tipo: 'entrada_bruto' })
-        .then(function () { mostrarMensaje('Entrada de bruto registrada', 'ok'); return refrescarTodo(); })
-        .catch(function (err) { mostrarMensaje('Error: ' + err.message, 'error'); });
-    });
-  });
+  document.querySelectorAll('.stepper').forEach(function (stepper) {
+    var tipo = stepper.dataset.tipo;
+    var producto = stepper.dataset.producto || null;
+    var etiqueta = tipo === 'entrada_bruto' ? 'Material Bruto' : LABELS_PIEDRA[producto];
 
-  document.querySelectorAll('[data-accion="camion-salida"]').forEach(function (boton) {
-    boton.addEventListener('click', function () {
-      var producto = boton.dataset.producto;
-      llamarApi('registrarCamion', { tipo: 'salida', producto: producto })
-        .then(function () { mostrarMensaje('Salida registrada: ' + LABELS_PIEDRA[producto], 'ok'); return refrescarTodo(); })
-        .catch(function (err) { mostrarMensaje('Error: ' + err.message, 'error'); });
+    stepper.querySelector('.stepper-btn.mas').addEventListener('click', function (e) {
+      var boton = e.currentTarget;
+      conBotonDeshabilitado(boton, function () {
+        var accion = tipo === 'produccion' ? 'registrarProduccion' : 'registrarCamion';
+        var params = tipo === 'produccion' ? { producto: producto } : { tipo: tipo, producto: producto };
+        return llamarApi(accion, params)
+          .then(function () { mostrarMensaje('Registrado: ' + etiqueta, 'ok'); return refrescarTodo(); })
+          .catch(function (err) { mostrarMensaje('Error: ' + err.message, 'error'); });
+      });
     });
-  });
 
-  document.querySelectorAll('[data-accion="produccion"]').forEach(function (boton) {
-    boton.addEventListener('click', function () {
-      var producto = boton.dataset.producto;
-      llamarApi('registrarProduccion', { producto: producto })
-        .then(function () { mostrarMensaje('Producción registrada: ' + LABELS_PIEDRA[producto], 'ok'); return refrescarTodo(); })
-        .catch(function (err) { mostrarMensaje('Error: ' + err.message, 'error'); });
+    stepper.querySelector('.stepper-btn.menos').addEventListener('click', function (e) {
+      var boton = e.currentTarget;
+      conBotonDeshabilitado(boton, function () {
+        return llamarApi('deshacerUltimo', { tipo: tipo, producto: producto })
+          .then(function (resultado) {
+            if (resultado.deshecho) {
+              mostrarMensaje('Deshecho: ' + etiqueta, 'ok');
+            } else {
+              mostrarMensaje('No hay nada de hoy para deshacer', 'error');
+            }
+            return refrescarTodo();
+          })
+          .catch(function (err) { mostrarMensaje('Error: ' + err.message, 'error'); });
+      });
     });
   });
 

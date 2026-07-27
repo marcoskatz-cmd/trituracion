@@ -22,6 +22,8 @@ function _despachar_(action, params) {
       return conLock_(function () { return accionRegistrarCamion_(params); });
     case 'registrarProduccion':
       return conLock_(function () { return accionRegistrarProduccion_(params); });
+    case 'deshacerUltimo':
+      return conLock_(function () { return accionDeshacerUltimo_(params); });
     case 'registrarHorometro':
       return conLock_(function () { return accionRegistrarHorometro_(params); });
     case 'registrarInsumo':
@@ -81,6 +83,30 @@ function accionRegistrarProduccion_(params) {
   var movimiento = agregarMovimiento_('produccion', producto);
   recalcularStock_(producto);
   return movimiento;
+}
+
+function accionDeshacerUltimo_(params) {
+  var tipo = params.tipo;
+  var producto = tipo === 'entrada_bruto' ? null : (params.producto || null);
+  if (tipo !== 'entrada_bruto' && tipo !== 'salida' && tipo !== 'produccion') {
+    throw new Error('Tipo de movimiento inválido: ' + tipo);
+  }
+  if (tipo === 'salida' && PRODUCTOS_SALIDA.indexOf(producto) === -1) {
+    throw new Error('Producto de salida inválido: ' + producto);
+  }
+  if (tipo === 'produccion' && PRODUCTOS_ACOPIO.indexOf(producto) === -1) {
+    throw new Error('Producto de producción inválido: ' + producto);
+  }
+  var resultado = deshacerUltimoMovimiento_(tipo, producto);
+  if (resultado.deshecho) {
+    var esAcopioAfectado =
+      (tipo === 'salida' && PRODUCTOS_ACOPIO.indexOf(producto) !== -1) ||
+      tipo === 'produccion';
+    if (esAcopioAfectado) {
+      recalcularStock_(producto);
+    }
+  }
+  return resultado;
 }
 
 function accionRegistrarHorometro_(params) {
