@@ -1,5 +1,5 @@
 const test = require('node:test');
-const assert = require('node:assert');
+const assert = require('node:assert/strict');
 const { loadGasFiles } = require('./helpers/loadGas');
 
 test('calcularStockActual suma inicial y producido, resta entregado', () => {
@@ -25,8 +25,8 @@ test('agruparContadoresHoy filtra por fecha y agrupa por tipo/producto', () => {
   ];
   const resultado = gas.agruparContadoresHoy(movimientos, '2026-07-27T12:00:00.000Z');
   assert.equal(resultado.entrada_bruto, 1);
-  assert.deepEqual(resultado.salida, { piedra_6_19: 2 });
-  assert.deepEqual(resultado.produccion, { piedra_bola: 1 });
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(resultado.salida)), { piedra_6_19: 2 });
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(resultado.produccion)), { piedra_bola: 1 });
 });
 
 test('calcularHorasTrabajadas resta salida menos entrada', () => {
