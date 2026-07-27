@@ -203,12 +203,15 @@
     var entradaInput = document.getElementById('input-horometro-entrada');
     var salidaInput = document.getElementById('input-horometro-salida');
     if (datos.horometro) {
-      entradaInput.value = datos.horometro.horometroEntrada || '';
-      salidaInput.value = datos.horometro.horometroSalida || '';
-      entradaInput.disabled = !!datos.horometro.horometroEntrada;
-      salidaInput.disabled = !!datos.horometro.horometroSalida;
-      document.getElementById('horas-trabajadas').textContent = datos.horometro.horasTrabajadas
-        ? 'Horas trabajadas hoy: ' + datos.horometro.horasTrabajadas
+      var hEntrada = datos.horometro.horometroEntrada;
+      var hSalida = datos.horometro.horometroSalida;
+      var hHoras = datos.horometro.horasTrabajadas;
+      entradaInput.value = (hEntrada !== null && hEntrada !== undefined) ? hEntrada : '';
+      salidaInput.value = (hSalida !== null && hSalida !== undefined) ? hSalida : '';
+      entradaInput.disabled = (hEntrada !== null && hEntrada !== undefined);
+      salidaInput.disabled = (hSalida !== null && hSalida !== undefined);
+      document.getElementById('horas-trabajadas').textContent = (hHoras !== null && hHoras !== undefined)
+        ? 'Horas trabajadas hoy: ' + hHoras
         : '';
     } else {
       entradaInput.disabled = false;
@@ -231,9 +234,11 @@
     lista.innerHTML = '';
     Object.keys(LABELS_PIEDRA).forEach(function (producto) {
       if (!stock[producto]) return;
+      var s = stock[producto];
       var fila = document.createElement('div');
       fila.className = 'fila-stock';
-      fila.innerHTML = '<span>' + LABELS_PIEDRA[producto] + '</span><span>' + stock[producto].actual + ' m³</span>';
+      fila.innerHTML = '<span>' + LABELS_PIEDRA[producto] + '</span><span>Inicial ' + s.inicial +
+        ' · Producido ' + s.producido + ' · Entregado ' + s.entregado + ' · Actual ' + s.actual + ' m³</span>';
       lista.appendChild(fila);
     });
   }
@@ -311,7 +316,9 @@
   });
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js');
+    navigator.serviceWorker.register('service-worker.js').catch(function (err) {
+      console.warn('SW registration failed:', err);
+    });
   }
 
   refrescarTodo();

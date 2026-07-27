@@ -18,6 +18,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = event.request.url;
   if (url.includes('script.google.com') || url.includes('script.googleusercontent.com')) {
+    // no respondWith() here — falls through to the browser's normal network fetch, uncached
     return;
   }
   event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request)));

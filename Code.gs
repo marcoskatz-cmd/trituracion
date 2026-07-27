@@ -14,9 +14,6 @@ function doPost(e) {
 
 function _despachar_(action, params) {
   switch (action) {
-    case 'setup':
-      initSheets();
-      return { ok: true };
     case 'hoy':
       return accionHoy_();
     case 'stock':
@@ -26,9 +23,9 @@ function _despachar_(action, params) {
     case 'registrarProduccion':
       return conLock_(function () { return accionRegistrarProduccion_(params); });
     case 'registrarHorometro':
-      return accionRegistrarHorometro_(params);
+      return conLock_(function () { return accionRegistrarHorometro_(params); });
     case 'registrarInsumo':
-      return accionRegistrarInsumo_(params);
+      return conLock_(function () { return accionRegistrarInsumo_(params); });
     default:
       throw new Error('Acción desconocida: ' + action);
   }
@@ -46,7 +43,7 @@ function conLock_(fn) {
 
 function accionHoy_() {
   var movimientos = leerMovimientos_();
-  var hoyISO = new Date().toISOString();
+  var hoyISO = hoyLocalISO_();
   var contadores = agruparContadoresHoy(movimientos, hoyISO);
   return {
     camiones: { entrada_bruto: contadores.entrada_bruto, salida: contadores.salida },
@@ -62,7 +59,7 @@ function accionStock_() {
 
 function accionRegistrarCamion_(params) {
   var tipo = params.tipo;
-  var producto = params.producto || null;
+  var producto = tipo === 'entrada_bruto' ? null : (params.producto || null);
   if (tipo !== 'entrada_bruto' && tipo !== 'salida') {
     throw new Error('Tipo de camión inválido: ' + tipo);
   }
@@ -87,12 +84,20 @@ function accionRegistrarProduccion_(params) {
 }
 
 function accionRegistrarHorometro_(params) {
-  return registrarHorometro_(params.momento, Number(params.valor));
+  var valor = Number(params.valor);
+  if (!isFinite(valor)) {
+    throw new Error('Valor de horómetro inválido');
+  }
+  return registrarHorometro_(params.momento, valor);
 }
 
 function accionRegistrarInsumo_(params) {
   if (TIPOS_INSUMO.indexOf(params.tipo) === -1) {
     throw new Error('Tipo de insumo inválido: ' + params.tipo);
   }
-  return registrarInsumo_(params.tipo, Number(params.cantidad));
+  var cantidad = Number(params.cantidad);
+  if (!isFinite(cantidad) || cantidad <= 0) {
+    throw new Error('Cantidad de insumo inválida');
+  }
+  return registrarInsumo_(params.tipo, cantidad);
 }

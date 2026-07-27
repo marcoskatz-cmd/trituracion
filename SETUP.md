@@ -5,7 +5,7 @@
 3. `clasp push --force` (sube solo `*.gs` + `appsscript.json`, ver `.claspignore`).
 4. `clasp deploy --description "v1 inicial"` → anotar la URL `/exec`.
 5. **Configurar acceso público a mano**: abrir el proyecto en script.google.com → Implementar → Administrar implementaciones → editar (ícono de lápiz) → "Quién tiene acceso" → **Cualquier usuario** → Implementar. El campo `webapp` de `appsscript.json` declara la intención pero NO configura esto por sí solo vía `clasp`/API — confirmado en la práctica: tanto un redeploy (`-i`) como un deployment nuevo se sirvieron con "Necesitás acceso" hasta hacer este paso a mano.
-6. `curl -L "<EXEC_URL>" -H "Content-Type: text/plain;charset=utf-8" -d '{"action":"setup"}'` — crea la planilla `Trituracion - Datos` y las 5 hojas. **Ojo con curl**: no pasar `-X POST` explícito (rompe el redirect de Apps Script con un 411); `-d` ya implica POST.
+6. Correr `initSheets` desde el editor de Apps Script (no vía HTTP — no es una acción pública): Extensiones → Apps Script → seleccionar `initSheets` en el desplegable de funciones → ▶ Ejecutar → autorizar permisos la primera vez. Esto crea la planilla `Trituracion - Datos` y las 5 hojas.
 7. Abrir la planilla creada (Script Properties → `SHEET_ID` tiene el id) y cargar a mano:
    - `STOCK`: columna `Inicial` de cada piedra acopiada.
    - `CONFIG`: los factores reales de m³ por camión/tanda (arrancan en valores de ejemplo: 15 para camiones, 10 para tandas de producción).

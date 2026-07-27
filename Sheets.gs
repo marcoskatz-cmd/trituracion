@@ -82,7 +82,9 @@ function claveConfigMovimiento_(tipo, producto) {
 
 function leerConfig_() {
   var hoja = getSpreadsheet_().getSheetByName('CONFIG');
-  var datos = hoja.getRange(2, 1, hoja.getLastRow() - 1, 3).getValues();
+  var lastRow = hoja.getLastRow();
+  if (lastRow < 2) return {};
+  var datos = hoja.getRange(2, 1, lastRow - 1, 3).getValues();
   var config = {};
   datos.forEach(function (fila) {
     if (!fila[0]) return;
@@ -128,7 +130,9 @@ function recalcularStock_(producto) {
     if (m.tipo === 'salida') entregado += m.cantidadM3;
   });
   var hoja = getSpreadsheet_().getSheetByName('STOCK');
-  var datos = hoja.getRange(2, 1, hoja.getLastRow() - 1, 5).getValues();
+  var lastRow = hoja.getLastRow();
+  if (lastRow < 2) throw new Error('STOCK está vacía — correr initSheets primero');
+  var datos = hoja.getRange(2, 1, lastRow - 1, 5).getValues();
   for (var i = 0; i < datos.length; i++) {
     if (datos[i][0] === producto) {
       var fila = i + 2;
@@ -143,12 +147,19 @@ function recalcularStock_(producto) {
 
 function leerStock_() {
   var hoja = getSpreadsheet_().getSheetByName('STOCK');
-  var datos = hoja.getRange(2, 1, hoja.getLastRow() - 1, 5).getValues();
+  var lastRow = hoja.getLastRow();
+  if (lastRow < 2) return {};
+  var datos = hoja.getRange(2, 1, lastRow - 1, 5).getValues();
   var stock = {};
   datos.forEach(function (fila) {
     stock[fila[0]] = { inicial: fila[1], producido: fila[2], entregado: fila[3], actual: fila[4] };
   });
   return stock;
+}
+
+function hoyLocalISO_() {
+  var fecha = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  return fecha + 'T00:00:00.000Z';
 }
 
 function leerHorometroHoy_() {
@@ -216,7 +227,7 @@ function leerInsumosHoy_() {
   var hoja = getSpreadsheet_().getSheetByName('INSUMOS');
   var lastRow = hoja.getLastRow();
   if (lastRow < 2) return {};
-  var hoyISO = new Date().toISOString();
+  var hoyISO = hoyLocalISO_();
   var datos = hoja.getRange(2, 1, lastRow - 1, 4).getValues();
   var resultado = {};
   datos.forEach(function (fila) {
