@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Trituración INGECO</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4a5568">
+<link rel="icon" href="icon-192.png">
+<style>
+  :root {
+    --bg: #f4f5f7;
+    --card: #ffffff;
+    --texto: #1a202c;
+    --primario: #4a5568;
+    --primario-oscuro: #2d3748;
+    --borde: #e2e8f0;
+    --exito: #2f855a;
+    --peligro: #c53030;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--texto);
+    padding-bottom: 72px;
+  }
+  header { background: var(--primario); color: white; padding: 16px; text-align: center; }
+  header h1 { margin: 0; font-size: 20px; }
+  header p { margin: 4px 0 0; font-size: 13px; opacity: 0.85; }
+  main { padding: 16px; max-width: 480px; margin: 0 auto; }
+  section { display: none; }
+  section.activa { display: block; }
+  .grid-botones { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .boton-contador {
+    background: var(--card);
+    border: 2px solid var(--borde);
+    border-radius: 12px;
+    padding: 16px 8px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 15px;
+  }
+  .boton-contador:active { background: var(--borde); }
+  .boton-contador .conteo { display: block; font-size: 26px; font-weight: 700; margin-top: 6px; color: var(--primario-oscuro); }
+  .boton-ancho { grid-column: 1 / -1; background: var(--primario); color: white; border: none; }
+  .boton-ancho .conteo { color: white; }
+  .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--borde); }
+  .card h3 { margin: 0 0 8px; font-size: 15px; }
+  .fila-stock { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--borde); }
+  .fila-stock:last-child { border-bottom: none; }
+  label { display: block; font-size: 13px; margin-bottom: 4px; color: #4a5568; }
+  input, select {
+    width: 100%; padding: 10px; border: 1px solid var(--borde);
+    border-radius: 8px; font-size: 16px; margin-bottom: 12px;
+  }
+  input:disabled { background: #edf2f7; color: #a0aec0; }
+  button.accion {
+    width: 100%; padding: 14px; border: none; border-radius: 10px;
+    background: var(--primario); color: white; font-size: 16px; font-weight: 600;
+  }
+  .mensaje { text-align: center; padding: 8px; border-radius: 8px; margin-bottom: 12px; font-size: 14px; }
+  .mensaje.ok { background: #c6f6d5; color: var(--exito); }
+  .mensaje.error { background: #fed7d7; color: var(--peligro); }
+  nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--borde); display: flex; }
+  nav button { flex: 1; padding: 10px 4px; border: none; background: none; font-size: 11px; color: #718096; }
+  nav button.activo { color: var(--primario-oscuro); font-weight: 700; }
+  nav button .icono { display: block; font-size: 20px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Planta de Trituración</h1>
+  <p id="fecha-hoy"></p>
+</header>
+<main>
+  <div id="mensaje" class="mensaje" style="display:none"></div>
+
+  <section id="tab-camiones" class="activa">
+    <div class="grid-botones">
+      <button class="boton-contador boton-ancho" data-accion="camion-bruto">
+        Entrada Material Bruto
+        <span class="conteo" id="c-entrada_bruto">0</span>
+      </button>
+      <button class="boton-contador" data-accion="camion-salida" data-producto="piedra_6_19">Piedra 6-19<span class="conteo" id="c-salida-piedra_6_19">0</span></button>
+      <button class="boton-contador" data-accion="camion-salida" data-producto="piedra_19_38">Piedra 19-38<span class="conteo" id="c-salida-piedra_19_38">0</span></button>
+      <button class="boton-contador" data-accion="camion-salida" data-producto="piedra_0_6">Piedra 0-6<span class="conteo" id="c-salida-piedra_0_6">0</span></button>
+      <button class="boton-contador" data-accion="camion-salida" data-producto="piedra_6_12">Piedra 6-12<span class="conteo" id="c-salida-piedra_6_12">0</span></button>
+      <button class="boton-contador" data-accion="camion-salida" data-producto="piedra_rechazo">Piedra Rechazo<span class="conteo" id="c-salida-piedra_rechazo">0</span></button>
+      <button class="boton-contador" data-accion="camion-salida" data-producto="piedra_bola">Piedra Bola<span class="conteo" id="c-salida-piedra_bola">0</span></button>
+    </div>
+  </section>
+
+  <section id="tab-produccion">
+    <div class="grid-botones">
+      <button class="boton-contador" data-accion="produccion" data-producto="piedra_6_19">Piedra 6-19<span class="conteo" id="c-produccion-piedra_6_19">0</span></button>
+      <button class="boton-contador" data-accion="produccion" data-producto="piedra_0_6">Piedra 0-6<span class="conteo" id="c-produccion-piedra_0_6">0</span></button>
+      <button class="boton-contador" data-accion="produccion" data-producto="piedra_rechazo">Piedra Rechazo<span class="conteo" id="c-produccion-piedra_rechazo">0</span></button>
+      <button class="boton-contador" data-accion="produccion" data-producto="piedra_bola">Piedra Bola<span class="conteo" id="c-produccion-piedra_bola">0</span></button>
+    </div>
+  </section>
+
+  <section id="tab-stock">
+    <div class="card">
+      <h3>Stock de acopio (m³)</h3>
+      <div id="lista-stock"></div>
+    </div>
+  </section>
+
+  <section id="tab-horometro">
+    <div class="card">
+      <h3>Horómetro de hoy</h3>
+      <label for="input-horometro-entrada">Horómetro entrada</label>
+      <input type="number" id="input-horometro-entrada" step="0.1">
+      <button class="accion" id="btn-horometro-entrada" style="margin-bottom:12px">Registrar entrada</button>
+      <label for="input-horometro-salida">Horómetro salida</label>
+      <input type="number" id="input-horometro-salida" step="0.1">
+      <button class="accion" id="btn-horometro-salida">Registrar salida</button>
+      <p id="horas-trabajadas" style="margin-top:12px; font-weight:600"></p>
+    </div>
+  </section>
+
+  <section id="tab-insumos">
+    <div class="card">
+      <h3>Registrar uso de insumo</h3>
+      <label for="select-insumo">Insumo</label>
+      <select id="select-insumo">
+        <option value="aceite_motor">Aceite Motor</option>
+        <option value="aceite_hidraulico">Aceite Hidráulico</option>
+        <option value="refrigerante">Refrigerante</option>
+        <option value="agua_destilada">Agua Destilada</option>
+        <option value="grasa">Grasa</option>
+      </select>
+      <label for="input-cantidad-insumo">Cantidad (litros/kg)</label>
+      <input type="number" id="input-cantidad-insumo" step="0.1" min="0">
+      <button class="accion" id="btn-registrar-insumo">Registrar</button>
+    </div>
+    <div class="card">
+      <h3>Usado hoy</h3>
+      <div id="lista-insumos-hoy"></div>
+    </div>
+  </section>
+</main>
+
+<nav>
+  <button data-tab="camiones" class="activo"><span class="icono">🚛</span>Camiones</button>
+  <button data-tab="produccion"><span class="icono">⚙️</span>Producción</button>
+  <button data-tab="stock"><span class="icono">📦</span>Stock</button>
+  <button data-tab="horometro"><span class="icono">⏱️</span>Horómetro</button>
+  <button data-tab="insumos"><span class="icono">🛢️</span>Insumos</button>
+</nav>
+
+<script>
+(function () {
+  var CONFIG = { API_URL: 'https://script.google.com/macros/s/AKfycbwNcjZ6SG4WqC7TyyOCVppTrtyovaLLApsP8qzFPwg25ThSYBXHqPIwInq9BPS2GfOJuA/exec' };
+
+  var LABELS_PIEDRA = {
+    piedra_6_19: 'Piedra 6-19', piedra_19_38: 'Piedra 19-38', piedra_0_6: 'Piedra 0-6',
+    piedra_6_12: 'Piedra 6-12', piedra_rechazo: 'Piedra Rechazo', piedra_bola: 'Piedra Bola'
+  };
+  var LABELS_INSUMO = {
+    aceite_motor: 'Aceite Motor', aceite_hidraulico: 'Aceite Hidráulico',
+    refrigerante: 'Refrigerante', agua_destilada: 'Agua Destilada', grasa: 'Grasa'
+  };
+
+  function mostrarMensaje(texto, tipo) {
+    var el = document.getElementById('mensaje');
+    el.textContent = texto;
+    el.className = 'mensaje ' + tipo;
+    el.style.display = 'block';
+    setTimeout(function () { el.style.display = 'none'; }, 3000);
+  }
+
+  function llamarApi(accion, params) {
+    var body = Object.assign({ action: accion }, params || {});
+    return fetch(CONFIG.API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(body)
+    }).then(function (resp) { return resp.json(); }).then(function (data) {
+      if (data && data.error) throw new Error(data.error);
+      return data;
+    });
+  }
+
+  function cambiarTab(nombre) {
+    document.querySelectorAll('section').forEach(function (s) { s.classList.remove('activa'); });
+    document.getElementById('tab-' + nombre).classList.add('activa');
+    document.querySelectorAll('nav button').forEach(function (b) {
+      b.classList.toggle('activo', b.dataset.tab === nombre);
+    });
+  }
+
+  function pintarHoy(datos) {
+    document.getElementById('c-entrada_bruto').textContent = datos.camiones.entrada_bruto || 0;
+    Object.keys(LABELS_PIEDRA).forEach(function (producto) {
+      var elSalida = document.getElementById('c-salida-' + producto);
+      if (elSalida) elSalida.textContent = (datos.camiones.salida && datos.camiones.salida[producto]) || 0;
+      var elProd = document.getElementById('c-produccion-' + producto);
+      if (elProd) elProd.textContent = (datos.produccion && datos.produccion[producto]) || 0;
+    });
+    var entradaInput = document.getElementById('input-horometro-entrada');
+    var salidaInput = document.getElementById('input-horometro-salida');
+    if (datos.horometro) {
+      entradaInput.value = datos.horometro.horometroEntrada || '';
+      salidaInput.value = datos.horometro.horometroSalida || '';
+      entradaInput.disabled = !!datos.horometro.horometroEntrada;
+      salidaInput.disabled = !!datos.horometro.horometroSalida;
+      document.getElementById('horas-trabajadas').textContent = datos.horometro.horasTrabajadas
+        ? 'Horas trabajadas hoy: ' + datos.horometro.horasTrabajadas
+        : '';
+    } else {
+      entradaInput.disabled = false;
+      salidaInput.disabled = false;
+      document.getElementById('horas-trabajadas').textContent = '';
+    }
+    var listaInsumos = document.getElementById('lista-insumos-hoy');
+    listaInsumos.innerHTML = '';
+    Object.keys(LABELS_INSUMO).forEach(function (tipo) {
+      var cantidad = (datos.insumos && datos.insumos[tipo]) || 0;
+      var fila = document.createElement('div');
+      fila.className = 'fila-stock';
+      fila.innerHTML = '<span>' + LABELS_INSUMO[tipo] + '</span><span>' + cantidad + '</span>';
+      listaInsumos.appendChild(fila);
+    });
+  }
+
+  function pintarStock(stock) {
+    var lista = document.getElementById('lista-stock');
+    lista.innerHTML = '';
+    Object.keys(LABELS_PIEDRA).forEach(function (producto) {
+      if (!stock[producto]) return;
+      var fila = document.createElement('div');
+      fila.className = 'fila-stock';
+      fila.innerHTML = '<span>' + LABELS_PIEDRA[producto] + '</span><span>' + stock[producto].actual + ' m³</span>';
+      lista.appendChild(fila);
+    });
+  }
+
+  function refrescarTodo() {
+    return Promise.all([llamarApi('hoy'), llamarApi('stock')]).then(function (resultados) {
+      pintarHoy(resultados[0]);
+      pintarStock(resultados[1]);
+    }).catch(function (err) {
+      mostrarMensaje('No se pudo actualizar: ' + err.message, 'error');
+    });
+  }
+
+  document.querySelectorAll('nav button').forEach(function (boton) {
+    boton.addEventListener('click', function () { cambiarTab(boton.dataset.tab); });
+  });
+
+  document.querySelectorAll('[data-accion="camion-bruto"]').forEach(function (boton) {
+    boton.addEventListener('click', function () {
+      llamarApi('registrarCamion', { tipo: 'entrada_bruto' })
+        .then(function () { mostrarMensaje('Entrada de bruto registrada', 'ok'); return refrescarTodo(); })
+        .catch(function (err) { mostrarMensaje('Error: ' + err.message, 'error'); });
+    });
+  });
+
+  document.querySelectorAll('[data-accion="camion-salida"]').forEach(function (boton) {
+    boton.addEventListener('click', function () {
+      var producto = boton.dataset.producto;
+      llamarApi('registrarCamion', { tipo: 'salida', producto: producto })
+        .then(function () { mostrarMensaje('Salida registrada: ' + LABELS_PIEDRA[producto], 'ok'); return refrescarTodo(); })
+        .catch(function (err) { mostrarMensaje('Error: ' + err.message, 'error'); });
+    });
+  });
+
+  document.querySelectorAll('[data-accion="produccion"]').forEach(function (boton) {
+    boton.addEventListener('click', function () {
+      var producto = boton.dataset.producto;
+      llamarApi('registrarProduccion', { producto: producto })
+        .then(function () { mostrarMensaje('Producción registrada: ' + LABELS_PIEDRA[producto], 'ok'); return refrescarTodo(); })
+        .catch(function (err) { mostrarMensaje('Error: ' + err.message, 'error'); });
+    });
+  });
+
+  document.getElementById('btn-horometro-entrada').addEventListener('click', function () {
+    var valor = document.getElementById('input-horometro-entrada').value;
+    if (!valor) { mostrarMensaje('Cargá un valor de horómetro', 'error'); return; }
+    llamarApi('registrarHorometro', { momento: 'entrada', valor: valor })
+      .then(function () { mostrarMensaje('Horómetro entrada registrado', 'ok'); return refrescarTodo(); })
+      .catch(function (err) { mostrarMensaje('Error: ' + err.message, 'error'); });
+  });
+
+  document.getElementById('btn-horometro-salida').addEventListener('click', function () {
+    var valor = document.getElementById('input-horometro-salida').value;
+    if (!valor) { mostrarMensaje('Cargá un valor de horómetro', 'error'); return; }
+    llamarApi('registrarHorometro', { momento: 'salida', valor: valor })
+      .then(function () { mostrarMensaje('Horómetro salida registrado', 'ok'); return refrescarTodo(); })
+      .catch(function (err) { mostrarMensaje('Error: ' + err.message, 'error'); });
+  });
+
+  document.getElementById('btn-registrar-insumo').addEventListener('click', function () {
+    var tipo = document.getElementById('select-insumo').value;
+    var cantidad = document.getElementById('input-cantidad-insumo').value;
+    if (!cantidad || Number(cantidad) <= 0) { mostrarMensaje('Cargá una cantidad válida', 'error'); return; }
+    llamarApi('registrarInsumo', { tipo: tipo, cantidad: cantidad })
+      .then(function () {
+        mostrarMensaje('Insumo registrado', 'ok');
+        document.getElementById('input-cantidad-insumo').value = '';
+        return refrescarTodo();
+      })
+      .catch(function (err) { mostrarMensaje('Error: ' + err.message, 'error'); });
+  });
+
+  document.getElementById('fecha-hoy').textContent = new Date().toLocaleDateString('es-AR', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js');
+  }
+
+  refrescarTodo();
+})();
+</script>
+</body>
+</html>
