@@ -30,6 +30,8 @@ function _despachar_(action, params) {
       return conLock_(function () { return accionRegistrarHorometro_(params); });
     case 'registrarInsumo':
       return conLock_(function () { return accionRegistrarInsumo_(params); });
+    case 'registrarObservacion':
+      return conLock_(function () { return accionRegistrarObservacion_(params); });
     default:
       throw new Error('Acción desconocida: ' + action);
   }
@@ -140,4 +142,12 @@ function accionRegistrarInsumo_(params) {
     throw new Error('Cantidad de insumo inválida');
   }
   return registrarInsumo_(params.tipo, cantidad);
+}
+
+function accionRegistrarObservacion_(params) {
+  var texto = String(params.observacion || '').trim();
+  if (!texto) {
+    throw new Error('La observación no puede estar vacía');
+  }
+  return registrarObservacion_(texto);
 }

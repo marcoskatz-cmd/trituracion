@@ -21,7 +21,7 @@ function initSheets() {
 
 function crearHojaMovimientos_(ss) {
   var hoja = ss.getSheetByName('MOVIMIENTOS') || ss.insertSheet('MOVIMIENTOS');
-  hoja.getRange(1, 1, 1, 5).setValues([['ID', 'Fecha_Hora', 'Tipo', 'Producto', 'Cantidad_m3']]);
+  hoja.getRange(1, 1, 1, 6).setValues([['ID', 'Fecha_Hora', 'Tipo', 'Producto', 'Cantidad_m3', 'Fecha_Atribuida']]);
   hoja.setFrozenRows(1);
 }
 
@@ -40,7 +40,7 @@ function crearHojaStock_(ss) {
 
 function crearHojaHorometro_(ss) {
   var hoja = ss.getSheetByName('HOROMETRO') || ss.insertSheet('HOROMETRO');
-  hoja.getRange(1, 1, 1, 4).setValues([['Fecha', 'Horometro_Entrada', 'Horometro_Salida', 'Horas_Trabajadas']]);
+  hoja.getRange(1, 1, 1, 5).setValues([['Fecha', 'Horometro_Entrada', 'Horometro_Salida', 'Horas_Trabajadas', 'Observacion']]);
   hoja.setFrozenRows(1);
 }
 
@@ -98,16 +98,25 @@ function leerMovimientos_() {
   var hoja = getSpreadsheet_().getSheetByName('MOVIMIENTOS');
   var lastRow = hoja.getLastRow();
   if (lastRow < 2) return [];
-  var datos = hoja.getRange(2, 1, lastRow - 1, 5).getValues();
+  var datos = hoja.getRange(2, 1, lastRow - 1, 6).getValues();
   return datos.map(function (fila) {
     return {
       id: fila[0],
       fecha: fila[1] instanceof Date ? fechaLocalISO_(fila[1]) : fila[1],
       tipo: fila[2],
       producto: fila[3],
-      cantidadM3: fila[4]
+      cantidadM3: fila[4],
+      fechaAtribuida: fila[5] || null
     };
   });
+}
+
+function fechaAtribuidaProduccion_() {
+  var hoy = new Date();
+  var diaISO = Number(Utilities.formatDate(hoy, Session.getScriptTimeZone(), 'u'));
+  var diasAtras = diaISO === 1 ? 2 : 1;
+  var atribuida = new Date(hoy.getTime() - diasAtras * 24 * 60 * 60 * 1000);
+  return Utilities.formatDate(atribuida, Session.getScriptTimeZone(), 'yyyy-MM-dd');
 }
 
 function agregarMovimiento_(tipo, producto) {
@@ -117,8 +126,9 @@ function agregarMovimiento_(tipo, producto) {
   var hoja = getSpreadsheet_().getSheetByName('MOVIMIENTOS');
   var id = Utilities.getUuid();
   var ahora = new Date();
-  hoja.appendRow([id, ahora, tipo, producto || '', factor]);
-  return { id: id, fecha: ahora.toISOString(), tipo: tipo, producto: producto || '', cantidadM3: factor };
+  var fechaAtribuida = tipo === 'produccion' ? fechaAtribuidaProduccion_() : '';
+  hoja.appendRow([id, ahora, tipo, producto || '', factor, fechaAtribuida]);
+  return { id: id, fecha: ahora.toISOString(), tipo: tipo, producto: producto || '', cantidadM3: factor, fechaAtribuida: fechaAtribuida || null };
 }
 
 function deshacerUltimoMovimiento_(tipo, producto) {
@@ -212,7 +222,7 @@ function leerHorometroHoy_() {
   var lastRow = hoja.getLastRow();
   if (lastRow < 2) return null;
   var hoyStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
-  var datos = hoja.getRange(2, 1, lastRow - 1, 4).getValues();
+  var datos = hoja.getRange(2, 1, lastRow - 1, 5).getValues();
   for (var i = 0; i < datos.length; i++) {
     var fechaFila = datos[i][0];
     var fechaStr = fechaFila instanceof Date
@@ -223,11 +233,29 @@ function leerHorometroHoy_() {
         fila: i + 2,
         horometroEntrada: datos[i][1] === '' ? null : datos[i][1],
         horometroSalida: datos[i][2] === '' ? null : datos[i][2],
-        horasTrabajadas: datos[i][3] === '' ? null : datos[i][3]
+        horasTrabajadas: datos[i][3] === '' ? null : datos[i][3],
+        observacion: datos[i][4] === '' ? null : datos[i][4]
       };
     }
   }
   return null;
+}
+
+function obtenerOcrearFilaHoy_(hoja, hoyStr) {
+  var lastRow = hoja.getLastRow();
+  if (lastRow >= 2) {
+    var fechas = hoja.getRange(2, 1, lastRow - 1, 1).getValues();
+    for (var i = 0; i < fechas.length; i++) {
+      var fechaFila = fechas[i][0];
+      var fechaStr = fechaFila instanceof Date
+        ? Utilities.formatDate(fechaFila, Session.getScriptTimeZone(), 'yyyy-MM-dd')
+        : fechaFila;
+      if (fechaStr === hoyStr) return i + 2;
+    }
+  }
+  var nuevaFila = lastRow + 1;
+  hoja.getRange(nuevaFila, 1, 1, 5).setValues([[hoyStr, '', '', '', '']]);
+  return nuevaFila;
 }
 
 function registrarHorometro_(momento, valor) {
@@ -237,27 +265,31 @@ function registrarHorometro_(momento, valor) {
   }
   var hoja = getSpreadsheet_().getSheetByName('HOROMETRO');
   var hoyStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
-  if (!registroHoy) {
-    var nuevaFila = hoja.getLastRow() + 1;
-    var valores = momento === 'entrada' ? [hoyStr, valor, '', ''] : [hoyStr, '', valor, ''];
-    hoja.getRange(nuevaFila, 1, 1, 4).setValues([valores]);
-    return {
-      fecha: hoyStr,
-      horometroEntrada: momento === 'entrada' ? valor : null,
-      horometroSalida: momento === 'salida' ? valor : null,
-      horasTrabajadas: null
-    };
-  }
+  var fila = obtenerOcrearFilaHoy_(hoja, hoyStr);
   var col = momento === 'entrada' ? 2 : 3;
-  hoja.getRange(registroHoy.fila, col).setValue(valor);
-  var entrada = momento === 'entrada' ? valor : registroHoy.horometroEntrada;
-  var salida = momento === 'salida' ? valor : registroHoy.horometroSalida;
+  hoja.getRange(fila, col).setValue(valor);
+  var entrada = momento === 'entrada' ? valor : (registroHoy ? registroHoy.horometroEntrada : null);
+  var salida = momento === 'salida' ? valor : (registroHoy ? registroHoy.horometroSalida : null);
   var horas = null;
   if (entrada !== null && salida !== null) {
     horas = calcularHorasTrabajadas(entrada, salida);
-    hoja.getRange(registroHoy.fila, 4).setValue(horas);
+    hoja.getRange(fila, 4).setValue(horas);
   }
-  return { fecha: hoyStr, horometroEntrada: entrada, horometroSalida: salida, horasTrabajadas: horas };
+  return {
+    fecha: hoyStr,
+    horometroEntrada: entrada,
+    horometroSalida: salida,
+    horasTrabajadas: horas,
+    observacion: registroHoy ? registroHoy.observacion : null
+  };
+}
+
+function registrarObservacion_(texto) {
+  var hoja = getSpreadsheet_().getSheetByName('HOROMETRO');
+  var hoyStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  var fila = obtenerOcrearFilaHoy_(hoja, hoyStr);
+  hoja.getRange(fila, 5).setValue(texto);
+  return { fecha: hoyStr, observacion: texto };
 }
 
 function registrarInsumo_(tipo, cantidad) {

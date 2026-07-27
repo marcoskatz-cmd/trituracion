@@ -164,14 +164,16 @@
   .stock-desglose b { color: var(--texto); font-weight: 700; }
 
   label { display: block; font-size: 13px; margin-bottom: 4px; color: #4a5568; }
-  input, select {
+  input, select, textarea {
     width: 100%;
     padding: 12px;
     border: 1px solid var(--borde);
     border-radius: 8px;
     font-size: 16px;
     margin-bottom: 12px;
+    font-family: inherit;
   }
+  textarea { resize: vertical; }
   input:disabled { background: #edf2f7; color: #a0aec0; }
   button.accion {
     width: 100%;
@@ -338,8 +340,8 @@
   </section>
 
   <section id="tab-producido">
-    <div class="info-unidad">Cada número es cantidad de viajes/tandas de hoy · 1 viaje ≈ 20 m³</div>
-    <div class="seccion-titulo produccion">🧱 Producido hoy</div>
+    <div class="info-unidad">Lo que se carga hoy es lo que se produjo ayer (se retira al día siguiente) · 1 viaje ≈ 20 m³</div>
+    <div class="seccion-titulo produccion">🧱 Producido ayer</div>
     <div class="producido-item">
       <div class="stepper produccion" data-tipo="produccion" data-producto="piedra_6_19">
         <button class="stepper-btn menos" data-accion="menos">−</button>
@@ -420,6 +422,13 @@
       <h3>Usado hoy</h3>
       <div id="lista-insumos-hoy"></div>
     </div>
+
+    <div class="card">
+      <h3>📝 Observación del día</h3>
+      <label for="input-observacion">Algo para anotar sobre este turno (opcional)</label>
+      <textarea id="input-observacion" rows="3" placeholder="Ej: se rompió la cinta transportadora a la tarde..."></textarea>
+      <button class="accion" id="btn-registrar-observacion">Guardar observación</button>
+    </div>
   </section>
 </main>
 
@@ -436,9 +445,9 @@
     <h4>🚛 Viajes</h4>
     <p>Tocá "+" cada vez que entra un camión con material bruto, o sale uno con piedra clasificada. Al final del día, cargá cuánto material bruto quedó acopiado (sin usar) en "Registrar remanente de hoy".</p>
     <h4>🧱 Producido</h4>
-    <p>Tocá "+" cada vez que se arma una tanda hacia el acopio. Debajo de cada piedra vas a ver el "Acopio actual": lo que queda apilado (Inicial + Producido − lo que salió en Viajes).</p>
+    <p>Lo que se produjo ayer se retira y se carga hoy — por eso dice "Producido ayer". Tocá "+" por cada tanda. Debajo de cada piedra vas a ver el "Acopio actual": lo que queda apilado (Inicial + Producido − lo que salió en Viajes). Lo del sábado se carga el lunes.</p>
     <h4>⏱️ Turno</h4>
-    <p>Cargá el horómetro de entrada y salida de la máquina, y los insumos que usaste (aceite, grasa, etc.).</p>
+    <p>Cargá el horómetro de entrada y salida de la máquina, los insumos que usaste (aceite, grasa, etc.), y cualquier observación sobre el día (algo que se rompió, faltó, etc.).</p>
     <h4>✅ Si te equivocaste</h4>
     <p>Tocá "−" para deshacer el último que cargaste de ese tipo. Si no hay nada para deshacer hoy, el botón queda gris y no se puede tocar.</p>
     <h4>📏 Unidades</h4>
@@ -548,6 +557,12 @@
       fila.innerHTML = '<span>' + LABELS_INSUMO[tipo] + '</span> — <b>' + cantidad + '</b>';
       listaInsumos.appendChild(fila);
     });
+
+    var textareaObs = document.getElementById('input-observacion');
+    if (document.activeElement !== textareaObs) {
+      var observacion = datos.horometro && datos.horometro.observacion;
+      textareaObs.value = observacion || '';
+    }
   }
 
   function pintarStockMini(id, s, etiquetaProducido, etiquetaEntregado) {
@@ -658,6 +673,17 @@
       .then(function () {
         mostrarMensaje('Remanente registrado', 'ok');
         document.getElementById('input-remanente-bruto').value = '';
+        return refrescarTodo();
+      })
+      .catch(function (err) { mostrarMensaje('Error: ' + err.message, 'error'); });
+  });
+
+  document.getElementById('btn-registrar-observacion').addEventListener('click', function () {
+    var texto = document.getElementById('input-observacion').value.trim();
+    if (!texto) { mostrarMensaje('Escribí algo antes de guardar', 'error'); return; }
+    llamarApi('registrarObservacion', { observacion: texto })
+      .then(function () {
+        mostrarMensaje('Observación guardada', 'ok');
         return refrescarTodo();
       })
       .catch(function (err) { mostrarMensaje('Error: ' + err.message, 'error'); });
