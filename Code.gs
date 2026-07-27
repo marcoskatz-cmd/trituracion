@@ -24,6 +24,8 @@ function _despachar_(action, params) {
       return conLock_(function () { return accionRegistrarProduccion_(params); });
     case 'deshacerUltimo':
       return conLock_(function () { return accionDeshacerUltimo_(params); });
+    case 'registrarRemanenteBruto':
+      return conLock_(function () { return accionRegistrarRemanenteBruto_(params); });
     case 'registrarHorometro':
       return conLock_(function () { return accionRegistrarHorometro_(params); });
     case 'registrarInsumo':
@@ -61,7 +63,7 @@ function accionStock_() {
 
 function accionRegistrarCamion_(params) {
   var tipo = params.tipo;
-  var producto = tipo === 'entrada_bruto' ? null : (params.producto || null);
+  var producto = tipo === 'entrada_bruto' ? 'material_bruto' : (params.producto || null);
   if (tipo !== 'entrada_bruto' && tipo !== 'salida') {
     throw new Error('Tipo de camión inválido: ' + tipo);
   }
@@ -71,6 +73,9 @@ function accionRegistrarCamion_(params) {
   var movimiento = agregarMovimiento_(tipo, producto);
   if (tipo === 'salida' && PRODUCTOS_ACOPIO.indexOf(producto) !== -1) {
     recalcularStock_(producto);
+  }
+  if (tipo === 'entrada_bruto') {
+    recalcularStock_('material_bruto');
   }
   return movimiento;
 }
@@ -87,7 +92,7 @@ function accionRegistrarProduccion_(params) {
 
 function accionDeshacerUltimo_(params) {
   var tipo = params.tipo;
-  var producto = tipo === 'entrada_bruto' ? null : (params.producto || null);
+  var producto = tipo === 'entrada_bruto' ? 'material_bruto' : (params.producto || null);
   if (tipo !== 'entrada_bruto' && tipo !== 'salida' && tipo !== 'produccion') {
     throw new Error('Tipo de movimiento inválido: ' + tipo);
   }
@@ -101,12 +106,21 @@ function accionDeshacerUltimo_(params) {
   if (resultado.deshecho) {
     var esAcopioAfectado =
       (tipo === 'salida' && PRODUCTOS_ACOPIO.indexOf(producto) !== -1) ||
-      tipo === 'produccion';
+      tipo === 'produccion' ||
+      tipo === 'entrada_bruto';
     if (esAcopioAfectado) {
       recalcularStock_(producto);
     }
   }
   return resultado;
+}
+
+function accionRegistrarRemanenteBruto_(params) {
+  var remanente = Number(params.remanente);
+  if (!isFinite(remanente) || remanente < 0) {
+    throw new Error('Remanente de material bruto inválido');
+  }
+  return registrarRemanenteBruto_(remanente);
 }
 
 function accionRegistrarHorometro_(params) {

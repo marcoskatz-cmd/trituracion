@@ -29,7 +29,8 @@ function crearHojaStock_(ss) {
   var hoja = ss.getSheetByName('STOCK') || ss.insertSheet('STOCK');
   hoja.getRange(1, 1, 1, 5).setValues([['Producto', 'Inicial', 'Producido', 'Entregado', 'Actual']]);
   hoja.setFrozenRows(1);
-  PRODUCTOS_ACOPIO.forEach(function (producto, i) {
+  var productosStock = PRODUCTOS_ACOPIO.concat(['material_bruto']);
+  productosStock.forEach(function (producto, i) {
     var fila = i + 2;
     if (hoja.getRange(fila, 1).getValue() !== producto) {
       hoja.getRange(fila, 1, 1, 5).setValues([[producto, 0, 0, 0, 0]]);
@@ -54,17 +55,17 @@ function crearHojaConfig_(ss) {
   hoja.getRange(1, 1, 1, 3).setValues([['Concepto', 'Unidad', 'Factor_m3']]);
   hoja.setFrozenRows(1);
   var defaults = {
-    material_bruto: 15,
-    piedra_6_19: 15,
-    piedra_19_38: 15,
-    piedra_0_6: 15,
-    piedra_6_12: 15,
-    piedra_rechazo: 15,
-    piedra_bola: 15,
-    produccion_6_19: 10,
-    produccion_0_6: 10,
-    produccion_rechazo: 10,
-    produccion_bola: 10
+    material_bruto: 20,
+    piedra_6_19: 20,
+    piedra_19_38: 20,
+    piedra_0_6: 20,
+    piedra_6_12: 20,
+    piedra_rechazo: 20,
+    piedra_bola: 20,
+    produccion_6_19: 20,
+    produccion_0_6: 20,
+    produccion_rechazo: 20,
+    produccion_bola: 20
   };
   Object.keys(defaults).forEach(function (concepto, i) {
     var fila = i + 2;
@@ -144,7 +145,7 @@ function recalcularStock_(producto) {
   var entregado = 0;
   movimientos.forEach(function (m) {
     if (m.producto !== producto) return;
-    if (m.tipo === 'produccion') producido += m.cantidadM3;
+    if (m.tipo === 'produccion' || m.tipo === 'entrada_bruto') producido += m.cantidadM3;
     if (m.tipo === 'salida') entregado += m.cantidadM3;
   });
   var hoja = getSpreadsheet_().getSheetByName('STOCK');
@@ -161,6 +162,28 @@ function recalcularStock_(producto) {
     }
   }
   throw new Error('Producto de acopio desconocido: ' + producto);
+}
+
+function registrarRemanenteBruto_(remanente) {
+  var actual = recalcularStock_('material_bruto');
+  var consumido = actual.actual - remanente;
+  var hoja = getSpreadsheet_().getSheetByName('STOCK');
+  var lastRow = hoja.getLastRow();
+  var datos = hoja.getRange(2, 1, lastRow - 1, 5).getValues();
+  for (var i = 0; i < datos.length; i++) {
+    if (datos[i][0] === 'material_bruto') {
+      var fila = i + 2;
+      var inicial = datos[i][1];
+      var producido = datos[i][2];
+      var entregadoNuevo = datos[i][3] + consumido;
+      var actualNuevo = calcularStockActual(inicial, producido, entregadoNuevo);
+      hoja.getRange(fila, 4, 1, 2).setValues([[entregadoNuevo, actualNuevo]]);
+      var idMov = Utilities.getUuid();
+      getSpreadsheet_().getSheetByName('MOVIMIENTOS').appendRow([idMov, new Date(), 'remanente_bruto', 'material_bruto', remanente]);
+      return { remanente: remanente, consumidoDesdeUltimoRegistro: consumido, actual: actualNuevo };
+    }
+  }
+  throw new Error('No se encontró la fila de material_bruto en STOCK');
 }
 
 function leerStock_() {

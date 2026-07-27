@@ -5,15 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Trituración INGECO</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#4a5568">
+<meta name="theme-color" content="#283c83">
 <link rel="icon" href="icon-192.png">
 <style>
   :root {
     --bg: #f4f5f7;
     --card: #ffffff;
     --texto: #1a202c;
-    --primario: #4a5568;
-    --primario-oscuro: #2d3748;
+    --primario: #283c83;
+    --primario-oscuro: #1c2c61;
     --borde: #e2e8f0;
     --exito: #2f855a;
     --peligro: #c53030;
@@ -57,6 +57,17 @@
   .seccion-titulo.produccion { color: var(--produccion); }
   .seccion-bloque { margin-bottom: 22px; }
 
+  .info-unidad {
+    background: #eef1f8;
+    color: var(--primario-oscuro);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 14px;
+  }
+
   .stepper {
     display: flex;
     align-items: center;
@@ -95,7 +106,8 @@
 
   .stepper-info { flex: 1; text-align: center; min-width: 0; }
   .stepper-label { display: block; font-size: 14px; font-weight: 600; color: var(--texto); }
-  .stepper-count { display: block; font-size: 30px; font-weight: 800; color: var(--primario-oscuro); }
+  .stepper-count { display: block; font-size: 30px; font-weight: 800; color: var(--primario-oscuro); line-height: 1.1; }
+  .stepper-unidad { display: block; font-size: 11px; font-weight: 600; color: #718096; text-transform: uppercase; letter-spacing: 0.03em; }
 
   .card {
     background: var(--card);
@@ -183,6 +195,7 @@
   <div id="mensaje" class="mensaje" style="display:none"></div>
 
   <section id="tab-camiones" class="activa">
+    <div class="info-unidad">Cada número es cantidad de viajes/camiones · 1 viaje ≈ 20 m³</div>
     <div class="seccion-bloque">
       <div class="seccion-titulo entrada">🟢 Entra</div>
       <div class="stepper entrada" data-tipo="entrada_bruto">
@@ -190,6 +203,7 @@
         <div class="stepper-info">
           <span class="stepper-label">Material Bruto</span>
           <span class="stepper-count" id="c-entrada_bruto">0</span>
+          <span class="stepper-unidad">viajes</span>
         </div>
         <button class="stepper-btn mas" data-accion="mas">+</button>
       </div>
@@ -202,6 +216,7 @@
         <div class="stepper-info">
           <span class="stepper-label">Piedra 6-19</span>
           <span class="stepper-count" id="c-salida-piedra_6_19">0</span>
+          <span class="stepper-unidad">viajes</span>
         </div>
         <button class="stepper-btn mas" data-accion="mas">+</button>
       </div>
@@ -210,6 +225,7 @@
         <div class="stepper-info">
           <span class="stepper-label">Piedra 19-38</span>
           <span class="stepper-count" id="c-salida-piedra_19_38">0</span>
+          <span class="stepper-unidad">viajes</span>
         </div>
         <button class="stepper-btn mas" data-accion="mas">+</button>
       </div>
@@ -218,6 +234,7 @@
         <div class="stepper-info">
           <span class="stepper-label">Piedra 0-6</span>
           <span class="stepper-count" id="c-salida-piedra_0_6">0</span>
+          <span class="stepper-unidad">viajes</span>
         </div>
         <button class="stepper-btn mas" data-accion="mas">+</button>
       </div>
@@ -226,6 +243,7 @@
         <div class="stepper-info">
           <span class="stepper-label">Piedra 6-12</span>
           <span class="stepper-count" id="c-salida-piedra_6_12">0</span>
+          <span class="stepper-unidad">viajes</span>
         </div>
         <button class="stepper-btn mas" data-accion="mas">+</button>
       </div>
@@ -234,6 +252,7 @@
         <div class="stepper-info">
           <span class="stepper-label">Piedra Rechazo</span>
           <span class="stepper-count" id="c-salida-piedra_rechazo">0</span>
+          <span class="stepper-unidad">viajes</span>
         </div>
         <button class="stepper-btn mas" data-accion="mas">+</button>
       </div>
@@ -242,6 +261,7 @@
         <div class="stepper-info">
           <span class="stepper-label">Piedra Bola</span>
           <span class="stepper-count" id="c-salida-piedra_bola">0</span>
+          <span class="stepper-unidad">viajes</span>
         </div>
         <button class="stepper-btn mas" data-accion="mas">+</button>
       </div>
@@ -249,12 +269,14 @@
   </section>
 
   <section id="tab-produccion">
-    <div class="seccion-titulo produccion">⚙️ Producción (a acopio)</div>
+    <div class="info-unidad">Cada número es cantidad de viajes/tandas · 1 viaje ≈ 20 m³</div>
+    <div class="seccion-titulo produccion">🧱 Acopio</div>
     <div class="stepper produccion" data-tipo="produccion" data-producto="piedra_6_19">
       <button class="stepper-btn menos" data-accion="menos">−</button>
       <div class="stepper-info">
         <span class="stepper-label">Piedra 6-19</span>
         <span class="stepper-count" id="c-produccion-piedra_6_19">0</span>
+          <span class="stepper-unidad">viajes</span>
       </div>
       <button class="stepper-btn mas" data-accion="mas">+</button>
     </div>
@@ -263,6 +285,7 @@
       <div class="stepper-info">
         <span class="stepper-label">Piedra 0-6</span>
         <span class="stepper-count" id="c-produccion-piedra_0_6">0</span>
+          <span class="stepper-unidad">viajes</span>
       </div>
       <button class="stepper-btn mas" data-accion="mas">+</button>
     </div>
@@ -271,6 +294,7 @@
       <div class="stepper-info">
         <span class="stepper-label">Piedra Rechazo</span>
         <span class="stepper-count" id="c-produccion-piedra_rechazo">0</span>
+          <span class="stepper-unidad">viajes</span>
       </div>
       <button class="stepper-btn mas" data-accion="mas">+</button>
     </div>
@@ -279,12 +303,20 @@
       <div class="stepper-info">
         <span class="stepper-label">Piedra Bola</span>
         <span class="stepper-count" id="c-produccion-piedra_bola">0</span>
+          <span class="stepper-unidad">viajes</span>
       </div>
       <button class="stepper-btn mas" data-accion="mas">+</button>
     </div>
   </section>
 
   <section id="tab-stock">
+    <div class="card">
+      <h3>🚚 Material Bruto</h3>
+      <div id="stock-bruto"></div>
+      <label for="input-remanente-bruto" style="margin-top:10px">¿Cuánto quedó acopiado al final del día?</label>
+      <input type="number" id="input-remanente-bruto" step="0.1" min="0">
+      <button class="accion" id="btn-registrar-remanente">Registrar remanente de hoy</button>
+    </div>
     <div class="card">
       <h3>📦 Stock de acopio</h3>
       <div id="lista-stock"></div>
@@ -328,7 +360,7 @@
 
 <nav>
   <button data-tab="camiones" class="activo"><span class="icono">🚛</span>Camiones</button>
-  <button data-tab="produccion"><span class="icono">⚙️</span>Producción</button>
+  <button data-tab="produccion"><span class="icono">🧱</span>Acopio</button>
   <button data-tab="stock"><span class="icono">📦</span>Stock</button>
   <button data-tab="horometro"><span class="icono">⏱️</span>Horómetro</button>
   <button data-tab="insumos"><span class="icono">🛢️</span>Insumos</button>
@@ -437,7 +469,30 @@
     });
   }
 
+  function nombreDesglose(s, etiquetaProducido, etiquetaEntregado) {
+    return '<div class="stock-desglose">' +
+      '<span>Inicial <b>' + s.inicial + '</b></span>' +
+      '<span>' + etiquetaProducido + ' <b>' + s.producido + '</b></span>' +
+      '<span>' + etiquetaEntregado + ' <b>' + s.entregado + '</b></span>' +
+      '</div>';
+  }
+
+  function itemStockHtml(nombre, s, etiquetaProducido, etiquetaEntregado) {
+    return '<div class="stock-nombre">' + nombre + '</div>' +
+      '<div class="stock-actual">' + s.actual + ' <small>m³ actual</small></div>' +
+      nombreDesglose(s, etiquetaProducido, etiquetaEntregado);
+  }
+
   function pintarStock(stock) {
+    var bruto = document.getElementById('stock-bruto');
+    if (stock.material_bruto) {
+      var itemBruto = document.createElement('div');
+      itemBruto.className = 'stock-item';
+      itemBruto.innerHTML = itemStockHtml('Material Bruto', stock.material_bruto, 'Entradas', 'Utilizado');
+      bruto.innerHTML = '';
+      bruto.appendChild(itemBruto);
+    }
+
     var lista = document.getElementById('lista-stock');
     lista.innerHTML = '';
     Object.keys(LABELS_PIEDRA).forEach(function (producto) {
@@ -445,14 +500,7 @@
       var s = stock[producto];
       var item = document.createElement('div');
       item.className = 'stock-item';
-      item.innerHTML =
-        '<div class="stock-nombre">' + LABELS_PIEDRA[producto] + '</div>' +
-        '<div class="stock-actual">' + s.actual + ' <small>m³ actual</small></div>' +
-        '<div class="stock-desglose">' +
-        '<span>Inicial <b>' + s.inicial + '</b></span>' +
-        '<span>Producido <b>' + s.producido + '</b></span>' +
-        '<span>Entregado <b>' + s.entregado + '</b></span>' +
-        '</div>';
+      item.innerHTML = itemStockHtml(LABELS_PIEDRA[producto], s, 'Producido', 'Entregado');
       lista.appendChild(item);
     });
   }
@@ -533,6 +581,18 @@
       .then(function () {
         mostrarMensaje('Insumo registrado', 'ok');
         document.getElementById('input-cantidad-insumo').value = '';
+        return refrescarTodo();
+      })
+      .catch(function (err) { mostrarMensaje('Error: ' + err.message, 'error'); });
+  });
+
+  document.getElementById('btn-registrar-remanente').addEventListener('click', function () {
+    var remanente = document.getElementById('input-remanente-bruto').value;
+    if (remanente === '' || Number(remanente) < 0) { mostrarMensaje('Cargá una cantidad válida', 'error'); return; }
+    llamarApi('registrarRemanenteBruto', { remanente: remanente })
+      .then(function () {
+        mostrarMensaje('Remanente registrado', 'ok');
+        document.getElementById('input-remanente-bruto').value = '';
         return refrescarTodo();
       })
       .catch(function (err) { mostrarMensaje('Error: ' + err.message, 'error'); });
