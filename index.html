@@ -34,6 +34,7 @@
     padding-bottom: 76px;
   }
   header {
+    position: relative;
     background: var(--primario);
     color: white;
     padding: 18px 16px 14px;
@@ -41,6 +42,20 @@
   }
   header img.logo { height: 34px; display: block; margin: 0 auto; }
   header p { margin: 8px 0 0; font-size: 13px; opacity: 0.85; }
+  .btn-ayuda {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.18);
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+  }
   main { padding: 16px; max-width: 480px; margin: 0 auto; }
   section { display: none; }
   section.activa { display: block; }
@@ -78,10 +93,9 @@
     border-left: 6px solid var(--tono, var(--primario));
     border-radius: 14px;
     padding: 10px 12px;
-    margin-bottom: 10px;
   }
   .stepper.entrada { --tono: var(--entrada); background: var(--entrada-tinte); }
-  .stepper.salida { --tono: var(--salida); background: var(--salida-tinte); }
+  .stepper.salida { --tono: var(--salida); background: var(--salida-tinte); margin-bottom: 10px; }
   .stepper.produccion { --tono: var(--produccion); background: var(--produccion-tinte); }
 
   .stepper-btn {
@@ -108,6 +122,19 @@
   .stepper-label { display: block; font-size: 14px; font-weight: 600; color: var(--texto); }
   .stepper-count { display: block; font-size: 30px; font-weight: 800; color: var(--primario-oscuro); line-height: 1.1; }
   .stepper-unidad { display: block; font-size: 11px; font-weight: 600; color: #718096; text-transform: uppercase; letter-spacing: 0.03em; }
+
+  .producido-item { margin-bottom: 16px; }
+  .stock-mini {
+    background: var(--card);
+    border: 1px solid var(--borde);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    padding: 8px 14px 10px;
+    font-size: 12px;
+    color: #718096;
+  }
+  .stock-mini .stock-mini-actual { font-size: 13px; font-weight: 700; color: var(--primario-oscuro); }
+  .stock-mini .stock-mini-actual b { font-size: 15px; }
 
   .card {
     background: var(--card);
@@ -184,17 +211,53 @@
   }
   nav button.activo { color: var(--primario-oscuro); font-weight: 700; }
   nav button .icono { display: block; font-size: 20px; }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(26, 32, 44, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 200;
+  }
+  .modal-card {
+    background: white;
+    border-radius: 16px;
+    padding: 22px;
+    max-width: 420px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+  }
+  .modal-card h2 { margin: 0 0 14px; font-size: 18px; color: var(--primario-oscuro); }
+  .modal-card h4 { margin: 16px 0 4px; font-size: 14px; }
+  .modal-card p { margin: 0 0 8px; font-size: 13px; color: #4a5568; line-height: 1.5; }
+  .modal-cerrar {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: var(--bg);
+    font-size: 15px;
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
 <header>
+  <button class="btn-ayuda" id="btn-ayuda">❔</button>
   <img class="logo" src="logo-ingeco.png" alt="INGECO">
   <p>Planta de Trituración · <span id="fecha-hoy"></span></p>
 </header>
 <main>
   <div id="mensaje" class="mensaje" style="display:none"></div>
 
-  <section id="tab-camiones" class="activa">
+  <section id="tab-viajes" class="activa">
     <div class="info-unidad">Cada número es cantidad de viajes/camiones · 1 viaje ≈ 20 m³</div>
     <div class="seccion-bloque">
       <div class="seccion-titulo entrada">🟢 Entra</div>
@@ -206,6 +269,12 @@
           <span class="stepper-unidad">viajes</span>
         </div>
         <button class="stepper-btn mas" data-accion="mas">+</button>
+      </div>
+      <div class="stock-mini" id="stock-material_bruto"></div>
+      <div class="card" style="margin-top:10px">
+        <label for="input-remanente-bruto">¿Cuánto quedó acopiado de bruto al final del día?</label>
+        <input type="number" id="input-remanente-bruto" step="0.1" min="0">
+        <button class="accion" id="btn-registrar-remanente">Registrar remanente de hoy</button>
       </div>
     </div>
 
@@ -268,62 +337,59 @@
     </div>
   </section>
 
-  <section id="tab-produccion">
-    <div class="info-unidad">Cada número es cantidad de viajes/tandas · 1 viaje ≈ 20 m³</div>
-    <div class="seccion-titulo produccion">🧱 Acopio</div>
-    <div class="stepper produccion" data-tipo="produccion" data-producto="piedra_6_19">
-      <button class="stepper-btn menos" data-accion="menos">−</button>
-      <div class="stepper-info">
-        <span class="stepper-label">Piedra 6-19</span>
-        <span class="stepper-count" id="c-produccion-piedra_6_19">0</span>
-          <span class="stepper-unidad">viajes</span>
+  <section id="tab-producido">
+    <div class="info-unidad">Cada número es cantidad de viajes/tandas de hoy · 1 viaje ≈ 20 m³</div>
+    <div class="producido-item">
+      <div class="stepper produccion" data-tipo="produccion" data-producto="piedra_6_19">
+        <button class="stepper-btn menos" data-accion="menos">−</button>
+        <div class="stepper-info">
+          <span class="stepper-label">Piedra 6-19</span>
+          <span class="stepper-count" id="c-produccion-piedra_6_19">0</span>
+          <span class="stepper-unidad">viajes hoy</span>
+        </div>
+        <button class="stepper-btn mas" data-accion="mas">+</button>
       </div>
-      <button class="stepper-btn mas" data-accion="mas">+</button>
+      <div class="stock-mini" id="stock-piedra_6_19"></div>
     </div>
-    <div class="stepper produccion" data-tipo="produccion" data-producto="piedra_0_6">
-      <button class="stepper-btn menos" data-accion="menos">−</button>
-      <div class="stepper-info">
-        <span class="stepper-label">Piedra 0-6</span>
-        <span class="stepper-count" id="c-produccion-piedra_0_6">0</span>
-          <span class="stepper-unidad">viajes</span>
+    <div class="producido-item">
+      <div class="stepper produccion" data-tipo="produccion" data-producto="piedra_0_6">
+        <button class="stepper-btn menos" data-accion="menos">−</button>
+        <div class="stepper-info">
+          <span class="stepper-label">Piedra 0-6</span>
+          <span class="stepper-count" id="c-produccion-piedra_0_6">0</span>
+          <span class="stepper-unidad">viajes hoy</span>
+        </div>
+        <button class="stepper-btn mas" data-accion="mas">+</button>
       </div>
-      <button class="stepper-btn mas" data-accion="mas">+</button>
+      <div class="stock-mini" id="stock-piedra_0_6"></div>
     </div>
-    <div class="stepper produccion" data-tipo="produccion" data-producto="piedra_rechazo">
-      <button class="stepper-btn menos" data-accion="menos">−</button>
-      <div class="stepper-info">
-        <span class="stepper-label">Piedra Rechazo</span>
-        <span class="stepper-count" id="c-produccion-piedra_rechazo">0</span>
-          <span class="stepper-unidad">viajes</span>
+    <div class="producido-item">
+      <div class="stepper produccion" data-tipo="produccion" data-producto="piedra_rechazo">
+        <button class="stepper-btn menos" data-accion="menos">−</button>
+        <div class="stepper-info">
+          <span class="stepper-label">Piedra Rechazo</span>
+          <span class="stepper-count" id="c-produccion-piedra_rechazo">0</span>
+          <span class="stepper-unidad">viajes hoy</span>
+        </div>
+        <button class="stepper-btn mas" data-accion="mas">+</button>
       </div>
-      <button class="stepper-btn mas" data-accion="mas">+</button>
+      <div class="stock-mini" id="stock-piedra_rechazo"></div>
     </div>
-    <div class="stepper produccion" data-tipo="produccion" data-producto="piedra_bola">
-      <button class="stepper-btn menos" data-accion="menos">−</button>
-      <div class="stepper-info">
-        <span class="stepper-label">Piedra Bola</span>
-        <span class="stepper-count" id="c-produccion-piedra_bola">0</span>
-          <span class="stepper-unidad">viajes</span>
+    <div class="producido-item">
+      <div class="stepper produccion" data-tipo="produccion" data-producto="piedra_bola">
+        <button class="stepper-btn menos" data-accion="menos">−</button>
+        <div class="stepper-info">
+          <span class="stepper-label">Piedra Bola</span>
+          <span class="stepper-count" id="c-produccion-piedra_bola">0</span>
+          <span class="stepper-unidad">viajes hoy</span>
+        </div>
+        <button class="stepper-btn mas" data-accion="mas">+</button>
       </div>
-      <button class="stepper-btn mas" data-accion="mas">+</button>
+      <div class="stock-mini" id="stock-piedra_bola"></div>
     </div>
   </section>
 
-  <section id="tab-stock">
-    <div class="card">
-      <h3>🚚 Material Bruto</h3>
-      <div id="stock-bruto"></div>
-      <label for="input-remanente-bruto" style="margin-top:10px">¿Cuánto quedó acopiado al final del día?</label>
-      <input type="number" id="input-remanente-bruto" step="0.1" min="0">
-      <button class="accion" id="btn-registrar-remanente">Registrar remanente de hoy</button>
-    </div>
-    <div class="card">
-      <h3>📦 Stock de acopio</h3>
-      <div id="lista-stock"></div>
-    </div>
-  </section>
-
-  <section id="tab-horometro">
+  <section id="tab-turno">
     <div class="card">
       <h3>⏱️ Horómetro de hoy</h3>
       <label for="input-horometro-entrada">Horómetro entrada</label>
@@ -334,9 +400,7 @@
       <button class="accion" id="btn-horometro-salida">Registrar salida</button>
       <p id="horas-trabajadas" style="margin-top:14px; font-weight:700; text-align:center"></p>
     </div>
-  </section>
 
-  <section id="tab-insumos">
     <div class="card">
       <h3>🛢️ Registrar uso de insumo</h3>
       <label for="select-insumo">Insumo</label>
@@ -359,12 +423,27 @@
 </main>
 
 <nav>
-  <button data-tab="camiones" class="activo"><span class="icono">🚛</span>Camiones</button>
-  <button data-tab="produccion"><span class="icono">🧱</span>Acopio</button>
-  <button data-tab="stock"><span class="icono">📦</span>Stock</button>
-  <button data-tab="horometro"><span class="icono">⏱️</span>Horómetro</button>
-  <button data-tab="insumos"><span class="icono">🛢️</span>Insumos</button>
+  <button data-tab="viajes" class="activo"><span class="icono">🚛</span>Viajes</button>
+  <button data-tab="producido"><span class="icono">🧱</span>Producido</button>
+  <button data-tab="turno"><span class="icono">⏱️</span>Turno</button>
 </nav>
+
+<div class="modal-overlay" id="modal-ayuda" style="display:none">
+  <div class="modal-card">
+    <button class="modal-cerrar" id="btn-cerrar-ayuda">✕</button>
+    <h2>Cómo usar la app</h2>
+    <h4>🚛 Viajes</h4>
+    <p>Tocá "+" cada vez que entra un camión con material bruto, o sale uno con piedra clasificada. Al final del día, cargá cuánto material bruto quedó acopiado (sin usar) en "Registrar remanente de hoy".</p>
+    <h4>🧱 Producido</h4>
+    <p>Tocá "+" cada vez que se arma una tanda hacia el acopio. Debajo de cada piedra vas a ver el "Acopio actual": lo que queda apilado (Inicial + Producido − lo que salió en Viajes).</p>
+    <h4>⏱️ Turno</h4>
+    <p>Cargá el horómetro de entrada y salida de la máquina, y los insumos que usaste (aceite, grasa, etc.).</p>
+    <h4>✅ Si te equivocaste</h4>
+    <p>Tocá "−" para deshacer el último que cargaste de ese tipo. Si no hay nada para deshacer hoy, el botón queda gris y no se puede tocar.</p>
+    <h4>📏 Unidades</h4>
+    <p>Los números de Viajes y Producido son cantidad de camiones/tandas. 1 viaje ≈ 20 m³. El Acopio se muestra directamente en m³.</p>
+  </div>
+</div>
 
 <script>
 (function () {
@@ -378,6 +457,7 @@
     aceite_motor: 'Aceite Motor', aceite_hidraulico: 'Aceite Hidráulico',
     refrigerante: 'Refrigerante', agua_destilada: 'Agua Destilada', grasa: 'Grasa'
   };
+  var PRODUCTOS_ACOPIO = ['piedra_6_19', 'piedra_0_6', 'piedra_rechazo', 'piedra_bola'];
 
   var estadoContadores = { entrada_bruto: 0, salida: {}, produccion: {} };
 
@@ -469,39 +549,23 @@
     });
   }
 
-  function nombreDesglose(s, etiquetaProducido, etiquetaEntregado) {
-    return '<div class="stock-desglose">' +
-      '<span>Inicial <b>' + s.inicial + '</b></span>' +
-      '<span>' + etiquetaProducido + ' <b>' + s.producido + '</b></span>' +
-      '<span>' + etiquetaEntregado + ' <b>' + s.entregado + '</b></span>' +
-      '</div>';
-  }
-
-  function itemStockHtml(nombre, s, etiquetaProducido, etiquetaEntregado) {
-    return '<div class="stock-nombre">' + nombre + '</div>' +
-      '<div class="stock-actual">' + s.actual + ' <small>m³ actual</small></div>' +
-      nombreDesglose(s, etiquetaProducido, etiquetaEntregado);
+  function pintarStockMini(id, s, etiquetaProducido, etiquetaEntregado) {
+    var el = document.getElementById(id);
+    if (!el || !s) return;
+    el.innerHTML =
+      '<div class="stock-mini-actual">Acopio actual: <b>' + s.actual + ' m³</b></div>' +
+      '<div>Inicial ' + s.inicial + ' + ' + etiquetaProducido + ' ' + s.producido +
+      ' − ' + etiquetaEntregado + ' ' + s.entregado + '</div>';
   }
 
   function pintarStock(stock) {
-    var bruto = document.getElementById('stock-bruto');
     if (stock.material_bruto) {
-      var itemBruto = document.createElement('div');
-      itemBruto.className = 'stock-item';
-      itemBruto.innerHTML = itemStockHtml('Material Bruto', stock.material_bruto, 'Entradas', 'Utilizado');
-      bruto.innerHTML = '';
-      bruto.appendChild(itemBruto);
+      pintarStockMini('stock-material_bruto', stock.material_bruto, 'Entradas', 'Utilizado');
     }
-
-    var lista = document.getElementById('lista-stock');
-    lista.innerHTML = '';
-    Object.keys(LABELS_PIEDRA).forEach(function (producto) {
-      if (!stock[producto]) return;
-      var s = stock[producto];
-      var item = document.createElement('div');
-      item.className = 'stock-item';
-      item.innerHTML = itemStockHtml(LABELS_PIEDRA[producto], s, 'Producido', 'Entregado');
-      lista.appendChild(item);
+    PRODUCTOS_ACOPIO.forEach(function (producto) {
+      if (stock[producto]) {
+        pintarStockMini('stock-' + producto, stock[producto], 'Producido', 'Entregado');
+      }
     });
   }
 
@@ -596,6 +660,16 @@
         return refrescarTodo();
       })
       .catch(function (err) { mostrarMensaje('Error: ' + err.message, 'error'); });
+  });
+
+  document.getElementById('btn-ayuda').addEventListener('click', function () {
+    document.getElementById('modal-ayuda').style.display = 'flex';
+  });
+  document.getElementById('btn-cerrar-ayuda').addEventListener('click', function () {
+    document.getElementById('modal-ayuda').style.display = 'none';
+  });
+  document.getElementById('modal-ayuda').addEventListener('click', function (e) {
+    if (e.target.id === 'modal-ayuda') e.target.style.display = 'none';
   });
 
   document.getElementById('fecha-hoy').textContent = new Date().toLocaleDateString('es-AR', {
