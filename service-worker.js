@@ -1,4 +1,4 @@
-const CACHE = 'trituracion-v9';
+const CACHE = 'trituracion-v10';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './logo-ingeco.png'];
 
 self.addEventListener('install', (event) => {

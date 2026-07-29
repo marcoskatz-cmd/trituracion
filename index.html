@@ -599,7 +599,10 @@
   function conBotonDeshabilitado(boton, fn) {
     if (boton.disabled) return;
     boton.disabled = true;
-    fn().finally(function () { actualizarBotonesMenos(); });
+    fn().finally(function () {
+      boton.disabled = false;
+      actualizarBotonesMenos();
+    });
   }
 
   document.querySelectorAll('nav button').forEach(function (boton) {
