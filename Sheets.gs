@@ -55,17 +55,17 @@ function crearHojaConfig_(ss) {
   hoja.getRange(1, 1, 1, 3).setValues([['Concepto', 'Unidad', 'Factor_m3']]);
   hoja.setFrozenRows(1);
   var defaults = {
-    material_bruto: 20,
-    piedra_6_19: 20,
-    piedra_19_38: 20,
-    piedra_0_6: 20,
-    piedra_6_12: 20,
-    piedra_rechazo: 20,
-    piedra_bola: 20,
-    produccion_6_19: 20,
-    produccion_0_6: 20,
-    produccion_rechazo: 20,
-    produccion_bola: 20
+    material_bruto: 5,
+    piedra_6_19: 5,
+    piedra_19_38: 5,
+    piedra_0_6: 5,
+    piedra_6_12: 5,
+    piedra_rechazo: 5,
+    piedra_bola: 5,
+    produccion_6_19: 5,
+    produccion_0_6: 5,
+    produccion_rechazo: 5,
+    produccion_bola: 5
   };
   Object.keys(defaults).forEach(function (concepto, i) {
     var fila = i + 2;

@@ -260,7 +260,7 @@
   <div id="mensaje" class="mensaje" style="display:none"></div>
 
   <section id="tab-viajes" class="activa">
-    <div class="info-unidad">Cada número es cantidad de viajes/camiones · 1 viaje ≈ 20 m³</div>
+    <div class="info-unidad">Cada número está en m³ · cada toque de +/− suma o resta 5 m³</div>
     <div class="seccion-bloque">
       <div class="seccion-titulo entrada">🟢 Entra</div>
       <div class="stepper entrada" data-tipo="entrada_bruto">
@@ -268,7 +268,7 @@
         <div class="stepper-info">
           <span class="stepper-label">Material Bruto</span>
           <span class="stepper-count" id="c-entrada_bruto">0</span>
-          <span class="stepper-unidad">viajes</span>
+          <span class="stepper-unidad">m³</span>
         </div>
         <button class="stepper-btn mas" data-accion="mas">+</button>
       </div>
@@ -287,7 +287,7 @@
         <div class="stepper-info">
           <span class="stepper-label">Piedra 6-19</span>
           <span class="stepper-count" id="c-salida-piedra_6_19">0</span>
-          <span class="stepper-unidad">viajes</span>
+          <span class="stepper-unidad">m³</span>
         </div>
         <button class="stepper-btn mas" data-accion="mas">+</button>
       </div>
@@ -296,7 +296,7 @@
         <div class="stepper-info">
           <span class="stepper-label">Piedra 19-38</span>
           <span class="stepper-count" id="c-salida-piedra_19_38">0</span>
-          <span class="stepper-unidad">viajes</span>
+          <span class="stepper-unidad">m³</span>
         </div>
         <button class="stepper-btn mas" data-accion="mas">+</button>
       </div>
@@ -305,7 +305,7 @@
         <div class="stepper-info">
           <span class="stepper-label">Piedra 0-6</span>
           <span class="stepper-count" id="c-salida-piedra_0_6">0</span>
-          <span class="stepper-unidad">viajes</span>
+          <span class="stepper-unidad">m³</span>
         </div>
         <button class="stepper-btn mas" data-accion="mas">+</button>
       </div>
@@ -314,7 +314,7 @@
         <div class="stepper-info">
           <span class="stepper-label">Piedra 6-12</span>
           <span class="stepper-count" id="c-salida-piedra_6_12">0</span>
-          <span class="stepper-unidad">viajes</span>
+          <span class="stepper-unidad">m³</span>
         </div>
         <button class="stepper-btn mas" data-accion="mas">+</button>
       </div>
@@ -323,7 +323,7 @@
         <div class="stepper-info">
           <span class="stepper-label">Piedra Rechazo</span>
           <span class="stepper-count" id="c-salida-piedra_rechazo">0</span>
-          <span class="stepper-unidad">viajes</span>
+          <span class="stepper-unidad">m³</span>
         </div>
         <button class="stepper-btn mas" data-accion="mas">+</button>
       </div>
@@ -332,7 +332,7 @@
         <div class="stepper-info">
           <span class="stepper-label">Piedra Bola</span>
           <span class="stepper-count" id="c-salida-piedra_bola">0</span>
-          <span class="stepper-unidad">viajes</span>
+          <span class="stepper-unidad">m³</span>
         </div>
         <button class="stepper-btn mas" data-accion="mas">+</button>
       </div>
@@ -340,7 +340,7 @@
   </section>
 
   <section id="tab-producido">
-    <div class="info-unidad">Lo que se carga hoy es lo que se produjo ayer (se retira al día siguiente) · 1 viaje ≈ 20 m³</div>
+    <div class="info-unidad">Lo que se carga hoy es lo que se produjo ayer (se retira al día siguiente) · cada toque suma/resta 5 m³</div>
     <div class="seccion-titulo produccion">🧱 Producido ayer</div>
     <div class="producido-item">
       <div class="stepper produccion" data-tipo="produccion" data-producto="piedra_6_19">
@@ -348,7 +348,7 @@
         <div class="stepper-info">
           <span class="stepper-label">Piedra 6-19</span>
           <span class="stepper-count" id="c-produccion-piedra_6_19">0</span>
-          <span class="stepper-unidad">viajes hoy</span>
+          <span class="stepper-unidad">m³ hoy</span>
         </div>
         <button class="stepper-btn mas" data-accion="mas">+</button>
       </div>
@@ -360,7 +360,7 @@
         <div class="stepper-info">
           <span class="stepper-label">Piedra 0-6</span>
           <span class="stepper-count" id="c-produccion-piedra_0_6">0</span>
-          <span class="stepper-unidad">viajes hoy</span>
+          <span class="stepper-unidad">m³ hoy</span>
         </div>
         <button class="stepper-btn mas" data-accion="mas">+</button>
       </div>
@@ -372,7 +372,7 @@
         <div class="stepper-info">
           <span class="stepper-label">Piedra Rechazo</span>
           <span class="stepper-count" id="c-produccion-piedra_rechazo">0</span>
-          <span class="stepper-unidad">viajes hoy</span>
+          <span class="stepper-unidad">m³ hoy</span>
         </div>
         <button class="stepper-btn mas" data-accion="mas">+</button>
       </div>
@@ -384,7 +384,7 @@
         <div class="stepper-info">
           <span class="stepper-label">Piedra Bola</span>
           <span class="stepper-count" id="c-produccion-piedra_bola">0</span>
-          <span class="stepper-unidad">viajes hoy</span>
+          <span class="stepper-unidad">m³ hoy</span>
         </div>
         <button class="stepper-btn mas" data-accion="mas">+</button>
       </div>
@@ -443,15 +443,15 @@
     <button class="modal-cerrar" id="btn-cerrar-ayuda">✕</button>
     <h2>Cómo usar la app</h2>
     <h4>🚛 Viajes</h4>
-    <p>Tocá "+" cada vez que entra un camión con material bruto, o sale uno con piedra clasificada. Al final del día, cargá cuánto material bruto quedó acopiado (sin usar) en "Registrar remanente de hoy".</p>
+    <p>Tocá "+" cada vez que entra material bruto, o sale piedra clasificada — cada toque suma 5 m³. Al final del día, cargá cuánto material bruto quedó acopiado (sin usar) en "Registrar remanente de hoy".</p>
     <h4>🧱 Producido</h4>
-    <p>Lo que se produjo ayer se retira y se carga hoy — por eso dice "Producido ayer". Tocá "+" por cada tanda. Debajo de cada piedra vas a ver el "Acopio actual": lo que queda apilado (Inicial + Producido − lo que salió en Viajes). Lo del sábado se carga el lunes.</p>
+    <p>Lo que se produjo ayer se retira y se carga hoy — por eso dice "Producido ayer". Tocá "+" por cada 5 m³. Debajo de cada piedra vas a ver el "Acopio actual": lo que queda apilado (Inicial + Producido − lo que salió en Viajes). Lo del sábado se carga el lunes.</p>
     <h4>⏱️ Turno</h4>
     <p>Cargá el horómetro de entrada y salida de la máquina, los insumos que usaste (aceite, grasa, etc.), y cualquier observación sobre el día (algo que se rompió, faltó, etc.).</p>
     <h4>✅ Si te equivocaste</h4>
-    <p>Tocá "−" para deshacer el último que cargaste de ese tipo. Si no hay nada para deshacer hoy, el botón queda gris y no se puede tocar.</p>
+    <p>Tocá "−" para deshacer los últimos 5 m³ que cargaste de ese tipo. Si no hay nada para deshacer hoy, el botón queda gris y no se puede tocar.</p>
     <h4>📏 Unidades</h4>
-    <p>Los números de Viajes y Producido son cantidad de camiones/tandas. 1 viaje ≈ 20 m³. El Acopio se muestra directamente en m³.</p>
+    <p>Todo se mide en m³. Cada toque de "+" o "−" suma o resta 5 m³.</p>
   </div>
 </div>
 
@@ -468,6 +468,8 @@
     refrigerante: 'Refrigerante', agua_destilada: 'Agua Destilada', grasa: 'Grasa'
   };
   var PRODUCTOS_ACOPIO = ['piedra_6_19', 'piedra_0_6', 'piedra_rechazo', 'piedra_bola'];
+  // Debe coincidir con el Factor_m3 de la hoja CONFIG (todos los conceptos en 5 m³ por toque)
+  var INCREMENTO_M3 = 5;
 
   var estadoContadores = { entrada_bruto: 0, salida: {}, produccion: {} };
 
@@ -520,12 +522,12 @@
     estadoContadores.salida = datos.camiones.salida || {};
     estadoContadores.produccion = datos.produccion || {};
 
-    document.getElementById('c-entrada_bruto').textContent = estadoContadores.entrada_bruto;
+    document.getElementById('c-entrada_bruto').textContent = estadoContadores.entrada_bruto * INCREMENTO_M3;
     Object.keys(LABELS_PIEDRA).forEach(function (producto) {
       var elSalida = document.getElementById('c-salida-' + producto);
-      if (elSalida) elSalida.textContent = estadoContadores.salida[producto] || 0;
+      if (elSalida) elSalida.textContent = (estadoContadores.salida[producto] || 0) * INCREMENTO_M3;
       var elProd = document.getElementById('c-produccion-' + producto);
-      if (elProd) elProd.textContent = estadoContadores.produccion[producto] || 0;
+      if (elProd) elProd.textContent = (estadoContadores.produccion[producto] || 0) * INCREMENTO_M3;
     });
     actualizarBotonesMenos();
 
