@@ -596,13 +596,30 @@
     });
   }
 
-  function conBotonDeshabilitado(boton, fn) {
-    if (boton.disabled) return;
-    boton.disabled = true;
-    fn().finally(function () {
-      boton.disabled = false;
-      actualizarBotonesMenos();
-    });
+  // Actualiza el contador en pantalla al instante (sin esperar al servidor), para que
+  // tocar +/- varias veces seguidas se sienta inmediato. La sincronización real llega
+  // con programarRefrescoDiferido() una vez que la persona deja de tocar.
+  function ajustarContadorLocal(tipo, producto, delta) {
+    if (tipo === 'entrada_bruto') {
+      estadoContadores.entrada_bruto = Math.max(0, estadoContadores.entrada_bruto + delta);
+      document.getElementById('c-entrada_bruto').textContent = estadoContadores.entrada_bruto * INCREMENTO_M3;
+    } else if (tipo === 'salida') {
+      estadoContadores.salida[producto] = Math.max(0, (estadoContadores.salida[producto] || 0) + delta);
+      document.getElementById('c-salida-' + producto).textContent = estadoContadores.salida[producto] * INCREMENTO_M3;
+    } else if (tipo === 'produccion') {
+      estadoContadores.produccion[producto] = Math.max(0, (estadoContadores.produccion[producto] || 0) + delta);
+      document.getElementById('c-produccion-' + producto).textContent = estadoContadores.produccion[producto] * INCREMENTO_M3;
+    }
+    actualizarBotonesMenos();
+  }
+
+  var refrescoDiferido = null;
+  function programarRefrescoDiferido() {
+    if (refrescoDiferido) clearTimeout(refrescoDiferido);
+    refrescoDiferido = setTimeout(function () {
+      refrescoDiferido = null;
+      refrescarTodo();
+    }, 800);
   }
 
   document.querySelectorAll('nav button').forEach(function (boton) {
@@ -614,31 +631,36 @@
     var producto = stepper.dataset.producto || null;
     var etiqueta = tipo === 'entrada_bruto' ? 'Material Bruto' : LABELS_PIEDRA[producto];
 
-    stepper.querySelector('.stepper-btn.mas').addEventListener('click', function (e) {
-      var boton = e.currentTarget;
-      conBotonDeshabilitado(boton, function () {
-        var accion = tipo === 'produccion' ? 'registrarProduccion' : 'registrarCamion';
-        var params = tipo === 'produccion' ? { producto: producto } : { tipo: tipo, producto: producto };
-        return llamarApi(accion, params)
-          .then(function () { mostrarMensaje('Registrado: ' + etiqueta, 'ok'); return refrescarTodo(); })
-          .catch(function (err) { mostrarMensaje('Error: ' + err.message, 'error'); });
-      });
+    stepper.querySelector('.stepper-btn.mas').addEventListener('click', function () {
+      ajustarContadorLocal(tipo, producto, 1);
+      var accion = tipo === 'produccion' ? 'registrarProduccion' : 'registrarCamion';
+      var params = tipo === 'produccion' ? { producto: producto } : { tipo: tipo, producto: producto };
+      llamarApi(accion, params)
+        .then(function () { mostrarMensaje('Registrado: ' + etiqueta, 'ok'); })
+        .catch(function (err) {
+          ajustarContadorLocal(tipo, producto, -1);
+          mostrarMensaje('Error: ' + err.message, 'error');
+        })
+        .finally(programarRefrescoDiferido);
     });
 
-    stepper.querySelector('.stepper-btn.menos').addEventListener('click', function (e) {
-      var boton = e.currentTarget;
-      conBotonDeshabilitado(boton, function () {
-        return llamarApi('deshacerUltimo', { tipo: tipo, producto: producto })
-          .then(function (resultado) {
-            if (resultado.deshecho) {
-              mostrarMensaje('Deshecho: ' + etiqueta, 'ok');
-            } else {
-              mostrarMensaje('No hay nada de hoy para deshacer', 'error');
-            }
-            return refrescarTodo();
-          })
-          .catch(function (err) { mostrarMensaje('Error: ' + err.message, 'error'); });
-      });
+    stepper.querySelector('.stepper-btn.menos').addEventListener('click', function () {
+      if (contadorDe(tipo, producto) <= 0) return;
+      ajustarContadorLocal(tipo, producto, -1);
+      llamarApi('deshacerUltimo', { tipo: tipo, producto: producto })
+        .then(function (resultado) {
+          if (resultado.deshecho) {
+            mostrarMensaje('Deshecho: ' + etiqueta, 'ok');
+          } else {
+            ajustarContadorLocal(tipo, producto, 1);
+            mostrarMensaje('No hay nada de hoy para deshacer', 'error');
+          }
+        })
+        .catch(function (err) {
+          ajustarContadorLocal(tipo, producto, 1);
+          mostrarMensaje('Error: ' + err.message, 'error');
+        })
+        .finally(programarRefrescoDiferido);
     });
   });
 
