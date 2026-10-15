@@ -73,6 +73,7 @@ function accionRegistrarCamion_(params) {
     throw new Error('Producto de salida inválido: ' + producto);
   }
   var movimiento = agregarMovimiento_(tipo, producto);
+  try { notificarAppIngeco_('TRITURACION', { destinatarios: [{ con_modulo: 'TRITURACION' }], tipo: 'aviso_general', prioridad: 'normal', titulo: tipo === 'entrada_bruto' ? 'Camión: entrada de material bruto' : 'Camión: salida de ' + String(producto).replace(/_/g, ' '), cuerpo: (movimiento.cantidadM3 ? movimiento.cantidadM3 + ' m³ · ' : '') + new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Tucuman' }), url_destino: 'https://marcoskatz-cmd.github.io/trituracion/', clave_unica: 'mov-' + movimiento.id }); } catch (eAv) { }
   if (tipo === 'salida' && PRODUCTOS_ACOPIO.indexOf(producto) !== -1) {
     recalcularStock_(producto);
   }
@@ -88,6 +89,7 @@ function accionRegistrarProduccion_(params) {
     throw new Error('Producto de producción inválido: ' + producto);
   }
   var movimiento = agregarMovimiento_('produccion', producto);
+  try { notificarAppIngeco_('TRITURACION', { destinatarios: [{ con_modulo: 'TRITURACION' }], tipo: 'aviso_general', prioridad: 'normal', titulo: 'Producción registrada: ' + String(producto).replace(/_/g, ' '), cuerpo: (movimiento.cantidadM3 ? movimiento.cantidadM3 + ' m³ · ' : '') + new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Tucuman' }), url_destino: 'https://marcoskatz-cmd.github.io/trituracion/', clave_unica: 'mov-' + movimiento.id }); } catch (eAv) { }
   recalcularStock_(producto);
   return movimiento;
 }
@@ -151,3 +153,4 @@ function accionRegistrarObservacion_(params) {
   }
   return registrarObservacion_(texto);
 }
+
